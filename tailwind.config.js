@@ -1,0 +1,235 @@
+/** @type {import('tailwindcss').Config} */
+
+module.exports = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./node_modules/@nextui-org/theme/dist/components/(button|modal|ripple|spinner).js",
+    "./node_modules/flowbite/**/*.js",
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        montserrat: ["Montserrat", "sans-serif"],
+      },
+      fontWeight: {
+        regular: 400,
+        semibold: 600,
+      },
+      fontSize: {
+        xs: ["0.75rem", { lineHeight: "normal" }], // 12px / Auto
+        sm: ["0.875rem", { lineHeight: "1.5" }], // 14px / 150%
+        base: ["1rem", { lineHeight: "1.5" }], // 16px / 150%
+        lg: ["1.125rem", { lineHeight: "1.5" }], // 18px / 150%
+        "lg-2": ["1.25rem", { lineHeight: "1.5" }], // 20px / 150%
+        xl: ["1.5rem", { lineHeight: "1.5" }], // 24px / 150%
+        "xl-2": ["2rem", { lineHeight: "1.5" }], // 32px / 150%
+        "2xl": ["2.25rem", { lineHeight: "1.5" }], // 36px / 150%
+        "2xl-2": ["2.5rem", { lineHeight: "1.5" }], // 40px / 150%
+        "3xl": ["4.5rem", { lineHeight: "1.5" }], // 72px / 150%
+      },
+      colors: {
+        stroke: "#191919",
+        "bg-white": "#FCFCFD",
+        "bg-content": "F3F4F7",
+        "bg-notification": "rgba(188,167,157,0.1)",
+        "primary-900": "#024447",
+        "primary-800": "#045651",
+        "primary-700": "#076B5B",
+        "primary-600": "#0A8061",
+        "primary-500": "#0F9565",
+        "primary-400": "#3EBF84",
+        "primary-300": "#66DF9C",
+        "primary-200": "#9CF4BA",
+        "primary-100": "#CCF9D7",
+        "primary-0": "#FFFFFF",
+        "success-900": "#3B6506",
+        "success-800": "#4C7A0B",
+        "success-700": "#659711",
+        "success-600": "#7FB519",
+        "success-500": "#9CD323",
+        "success-400": "#BCE455",
+        "success-300": "#D3F178",
+        "success-200": "#E8FAA6",
+        "success-100": "#F5FCD2",
+        "error-900": "#7A0619",
+        "error-800": "#930B16",
+        "error-700": "#B71112",
+        "error-600": "#DB2719",
+        "error-500": "#FF4423",
+        "error-400": "#FF7F59",
+        "error-300": "#FFA37A",
+        "error-200": "#FFC8A6",
+        "error-100": "#FFE7D3",
+        "warning-900": "#7A4D0B",
+        "warning-800": "#936312",
+        "warning-700": "#B7821D",
+        "warning-600": "#DBA32A",
+        "warning-500": "#FFC73A",
+        "warning-400": "#FFD96B",
+        "warning-300": "#FFE488",
+        "warning-200": "#FFEFB0",
+        "warning-100": "#FFF8D7",
+        "information-900": "#102E7A",
+        "information-800": "#1A4393",
+        "information-700": "#2A60B7",
+        "information-600": "#3D81DB",
+        "information-500": "#54A6FF",
+        "information-400": "#7EC2FF",
+        "information-300": "#98D3FF",
+        "information-200": "#BAE5FF",
+        "information-100": "#DCF3FF",
+        "secondary-900": "#090305",
+        "secondary-800": "#0B0607",
+        "secondary-700": "#0D090A",
+        "secondary-600": "#100D0E",
+        "secondary-500": "#131313",
+        "secondary-400": "#717171",
+        "secondary-300": "#B8B8B8",
+        "secondary-200": "#E7E7E7",
+        "secondary-100": "#F3F3F3",
+      },
+      screens: {
+        xsm: "427px",
+        sm: "640px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1536px",
+      },
+    },
+  },
+  plugins: [
+    function ({ addUtilities }) {
+      const newUtilities = {
+        ".text-xs-regular": {
+          fontSize: "0.75rem",
+          lineHeight: "normal",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-xs-semibold": {
+          fontSize: "0.75rem",
+          lineHeight: "normal",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-sm-regular": {
+          fontSize: "0.875rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-sm-semibold": {
+          fontSize: "0.875rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-base-regular": {
+          fontSize: "1rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-base-semibold": {
+          fontSize: "1rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-lg-regular": {
+          fontSize: "1.125rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-lg-semibold": {
+          fontSize: "1.125rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-lg-2-regular": {
+          fontSize: "1.25rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-lg-2-semibold": {
+          fontSize: "1.25rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-xl-regular": {
+          fontSize: "1.5rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-xl-semibold": {
+          fontSize: "1.5rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-xl-2-regular": {
+          fontSize: "2rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-xl-2-semibold": {
+          fontSize: "2rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-2xl-regular": {
+          fontSize: "2.25rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-2xl-semibold": {
+          fontSize: "2.25rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-2xl-2-regular": {
+          fontSize: "2.5rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-2xl-2-semibold": {
+          fontSize: "2.5rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-3xl-regular": {
+          fontSize: "3rem",
+          lineHeight: "1.5",
+          fontWeight: "400",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".text-3xl-semibold": {
+          fontSize: "3rem",
+          lineHeight: "1.5",
+          fontWeight: "600",
+          fontFamily: "Montserrat, sans-serif",
+        },
+        ".font-montserrat": {
+          fontFamily: "Montserrat, sans-serif",
+        },
+      };
+      addUtilities(newUtilities, ["responsive"]);
+    },
+  ],
+  darkMode: "class",
+};

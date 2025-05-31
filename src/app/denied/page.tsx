@@ -5,3 +5,5 @@ const Denied = () => {
     Coffee Shop Management
   </div>)
 }
+
+export default Denied;
