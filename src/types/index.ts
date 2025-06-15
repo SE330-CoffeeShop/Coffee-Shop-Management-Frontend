@@ -9,3 +9,4 @@ export type ButtonProps = {
   iconRight?: ReactNode | null;
   onClick?: () => void;
 };
+
