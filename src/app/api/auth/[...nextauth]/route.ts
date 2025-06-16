@@ -155,7 +155,7 @@ export const authOptions: NextAuthOptions = {
           accessToken: token.accessToken,
         };
       }
-      session.expires = new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString();
+      session.expires = new Date(Date.now() + 1 * 3 * 60 * 60 * 1000).toISOString();
       return session;
     },
   },

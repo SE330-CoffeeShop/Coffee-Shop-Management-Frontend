@@ -10,3 +10,23 @@ export type ButtonProps = {
   onClick?: () => void;
 };
 
+export type InputProps = {
+  title: string;
+  valid?: 'default' | 'error_AtLeast' | 'error_SameName' | 'success';
+  placeholder?: string;
+  value?: string | number;
+  radioValues?: string[];
+  readOnly?: boolean;
+  onChange: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => void;
+  required?: boolean;
+  type?: string;
+  suport?: string;
+};
+
+export type SearchBarProps = {
+  onSearch: (keyword: string) => void;
+}

@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-montserrat antialiased">
+      <body className="font-montserrat antialiased min-h-screen w-full">
         <SessionProviders>
           <AppProviders>
             <HeroUIProviders>{children}</HeroUIProviders>
