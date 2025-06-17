@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import "../styles/globals.css";
 import { SessionProviders, HeroUIProviders } from "@/providers";
 import AppProviders from "@/providers/AppProviders";
+import CartProviders from "@/providers/CartProviders";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const metadata: Metadata = {
   title: "BCoffee",
@@ -19,9 +22,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-montserrat antialiased min-h-screen w-full">
+        <ToastContainer position="top-right" autoClose={3000} />
         <SessionProviders>
           <AppProviders>
-            <HeroUIProviders>{children}</HeroUIProviders>
+            <HeroUIProviders>
+              <CartProviders>{children}</CartProviders>
+            </HeroUIProviders>
           </AppProviders>
         </SessionProviders>
       </body>

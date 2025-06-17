@@ -30,3 +30,11 @@ export type InputProps = {
 export type SearchBarProps = {
   onSearch: (keyword: string) => void;
 }
+
+export type ModalProps = {
+  isOpen: boolean;
+  onOpen: () => void;
+  onOpenChange: () => void;
+  onClose: () => void;
+  onCallParent?: () => void; // Callback báo cho parent biết đã tạo xong
+};

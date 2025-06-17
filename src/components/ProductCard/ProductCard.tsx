@@ -5,13 +5,12 @@ import { ProductType } from "@/types/product.type";
 
 interface ProductCardProps {
   product: ProductType;
+  onSelected: (product: ProductType) => void;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, onSelected }: ProductCardProps) => {
   const handleAddToCart = () => {
-    // Thêm logic thêm vào giỏ hàng, ví dụ:
-    console.log(`Thêm ${product.productName} vào giỏ hàng`);
-    // Có thể dispatch action Redux hoặc cập nhật Context
+    onSelected(product);
   };
 
   return (

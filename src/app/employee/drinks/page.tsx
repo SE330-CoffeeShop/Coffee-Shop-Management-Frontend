@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useContext } from "react";
 import useSWR from "swr";
 import { ProductType } from "@/types/product.type";
 import { ProductCategoryType } from "@/types/product.category.type";
@@ -8,6 +8,15 @@ import axios from "@/lib/axiosInstance";
 import { ProductCard, SearchBar } from "@/components";
 import ButtonSolid from "@/components/Button/ButtonSolid";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
+import { useDisclosure } from "@heroui/react";
+import AddProductToCartModal from "@/app/employee/drinks/AddProductToCart.modal";
+import { toast } from "react-toastify";
+import CartContext from "@/contexts/CartContext";
+import { CartContextType, CartItem } from "@/types/cart.type";
+import {
+  ApplyDiscountDto,
+  applyDiscountToCart,
+} from "@/services/employee.services/CartServices";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -27,6 +36,33 @@ const debounce = <T extends (...args: any[]) => void>(
 };
 
 const Drinks = () => {
+  const { cartItems, removeFromCart, updateQuantity, totalPrice } = useContext(
+    CartContext
+  ) as CartContextType;
+
+  // State for discount and tax
+  const [discount, setDiscount] = useState<number>(0);
+  const taxRate = 0.1; // 10% fixed tax
+  const subtotal = totalPrice;
+  const tax = (subtotal - discount) * taxRate;
+  const finalTotal = subtotal - discount + tax;
+
+  //! CONTROL Add Product To Cart modal
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(
+    null
+  );
+
+  const handleOpenAddProductToCartModal = (product: ProductType) => {
+    setSelectedProduct(product);
+    onOpen();
+  };
+
+  const handleCloseAddProductToCartModal = () => {
+    onClose();
+    setSelectedProduct(null);
+  };
+
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -38,15 +74,20 @@ const Drinks = () => {
 
   const rowsPerPage = 6;
   const endpointProductCategories = `/product-category/all?page=1&limit=100`;
-  const endpointProducts = selectedCategory
-    ? `/product/by-category/${selectedCategory}?page=${page}&limit=${rowsPerPage}`
-    : `/product/all?page=${page}&limit=${rowsPerPage}`;
+  const endpointProducts = useMemo(
+    () =>
+      selectedCategory
+        ? `/product/by-category/${selectedCategory}?page=${page}&limit=${rowsPerPage}`
+        : `/product/all?page=${page}&limit=${rowsPerPage}`,
+    [selectedCategory, page, rowsPerPage]
+  );
 
   // Fetch sản phẩm
   const {
     data: productsData,
     error: productsError,
     isLoading: productsLoading,
+    mutate: refreshEndpoint,
   } = useSWR(endpointProducts, fetcher, {
     keepPreviousData: true,
     revalidateOnFocus: false,
@@ -112,85 +153,252 @@ const Drinks = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  // Gọi đến parent
+  const handleCallParent = () => {
+    toast.success("Chọn sản phẩm thành công!");
+    refreshEndpoint();
+  };
+
+  const handleUpdateQuantity = (item: CartItem, newQuantity: string) => {
+    const num = parseInt(newQuantity);
+    if (!isNaN(num) && num >= 1) {
+      updateQuantity(item.id, item.productVariant, num);
+    } else if (newQuantity === "") {
+      return;
+    } else {
+      removeFromCart(item.id, item.productVariant);
+    }
+  };
+
+  const handleCheckout = () => {
+    toast.info("Chuyển hướng đến trang thanh toán...");
+    // Ví dụ: router.push('/checkout');
+  };
+
+  const handleDiscountWrapper = () => {
+    handleDiscount(cartItems);
+  };
+
+  const handleDiscount = async (cartItems: CartItem[]) => {
+    if (cartItems.length === 0) {
+      toast.error("Giỏ hàng trống, không thể áp dụng khuyến mãi!");
+      return;
+    }
+
+    try {
+      const cartDetails = cartItems.map((item) => ({
+        variantId: item.productVariant,
+        cartDetailQuantity: item.quantity,
+      }));
+
+      console.log("cartDetails: ", cartDetails);
+
+      const cartDetailsProps = {
+        cartDetails: cartDetails,
+      };
+
+      const discountAmount = await applyDiscountToCart(cartDetailsProps);
+
+      setDiscount(discountAmount);
+      toast.success(
+        `Áp dụng khuyến mãi thành công: ${discountAmount.toLocaleString(
+          "vi-VN"
+        )} VNĐ`
+      );
+    } catch (error: any) {
+      console.error("Discount API error:", error);
+      toast.error("Lỗi khi áp dụng khuyến mãi. Vui lòng thử lại.");
+    }
+  };
+
   const totalPages = Math.ceil(totalProducts / rowsPerPage);
 
   return (
     <main className="flex w-full min-h-screen gap-2 bg-secondary-100">
-      <div className="flex flex-col basis-[70%] p-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h2 className="text-lg font-semibold text-secondary-900">
-            Danh sách thức uống
-          </h2>
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-            <select
-              value={selectedCategory}
-              onChange={(e) => handleCategorySelect(e.target.value)}
-              className="p-2 border rounded-md w-full sm:w-48"
-              disabled={categoriesLoading || categoriesError}
-            >
-              <option value="">Tất cả danh mục</option>
-              {productCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.categoryName}
-                </option>
-              ))}
-            </select>
-            <SearchBar onSearch={handleSearch} />
+      <div className="flex h-full w-full">
+        <div className="flex flex-col basis-[70%] p-4 relative">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <h2 className="text-lg font-semibold text-secondary-900">
+              Danh sách thức uống
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategorySelect(e.target.value)}
+                className="p-2 border rounded-md w-full sm:w-48"
+                disabled={categoriesLoading || categoriesError}
+              >
+                <option value="">Tất cả danh mục</option>
+                {productCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.categoryName}
+                  </option>
+                ))}
+              </select>
+              <SearchBar onSearch={handleSearch} />
+            </div>
           </div>
-        </div>
-        <div className="mt-4">
-          {productsLoading || categoriesLoading ? (
-            <div className="animate-pulse space-y-2">
-              {[...Array(5)].map((_, idx) => (
-                <div key={idx} className="h-8 bg-gray-200 rounded"></div>
-              ))}
-            </div>
-          ) : productsError || categoriesError ? (
-            <div className="text-red-500">
-              Lỗi khi tải dữ liệu. Vui lòng thử lại.
-            </div>
-          ) : filteredProducts.length === 0 ? (
-            <div className="text-gray-500">Không tìm thấy sản phẩm</div>
-          ) : (
-            <div className="grid xsm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4">
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          <div className="mt-4">
+            {productsLoading || categoriesLoading ? (
+              <div className="animate-pulse space-y-2">
+                {[...Array(5)].map((_, idx) => (
+                  <div key={idx} className="h-8 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            ) : productsError || categoriesError ? (
+              <div className="text-red-500">
+                Lỗi khi tải dữ liệu. Vui lòng thử lại.
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-gray-500">Không tìm thấy sản phẩm</div>
+            ) : (
+              <div className="grid xsm:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 grid-rows-2 gap-4">
+                {filteredProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onSelected={handleOpenAddProductToCartModal}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+          {totalProducts > 0 && (
+            <div className="sticky bottom-0 bg-secondary-100 py-4 flex justify-between items-center mt-6 border-t border-gray-200">
+              <div className="text-sm text-gray-600">
+                Trang {page} / {totalPages} ({totalProducts} sản phẩm)
+              </div>
+              <div className="space-x-2 flex xsm:flex-col xsm:space-x-0 xsm:gap-2 sm:flex-row">
+                <ButtonSolid
+                  content="Trang trước"
+                  iconLeft={<IoIosArrowBack />}
+                  isDisabled={page === 1}
+                  onClick={() => handlePageChange(page - 1)}
+                  className="px-4 py-2 w-[150px] bg-gray-200 text-gray-800 rounded disabled:opacity-50 text-base-regular"
+                />
+                <ButtonSolid
+                  content="Trang sau"
+                  iconRight={<IoIosArrowForward />}
+                  isDisabled={page === totalPages}
+                  onClick={() => handlePageChange(page + 1)}
+                  className="px-4 py-2 w-[150px] bg-gray-200 text-gray-800 rounded disabled:opacity-50 text-base-regular"
+                />
+              </div>
             </div>
           )}
         </div>
-        {totalProducts > 0 && (
-          <div className="mt-6 flex justify-between items-center">
-            <div className="text-sm text-gray-600">
-              Trang {page} / {totalPages} ({totalProducts} sản phẩm)
+        <div className="flex flex-col basis-[30%] bg-white p-4 shadow-md rounded-md h-full">
+          <h3 className="text-lg font-semibold text-secondary-900 mb-4">
+            Giỏ hàng
+          </h3>
+          {cartItems.length === 0 ? (
+            <p className="text-gray-500 flex-grow">Giỏ hàng trống</p>
+          ) : (
+            <div className="flex flex-col h-full gap-4">
+              <div className="flex-grow">
+                {cartItems.map((item) => (
+                  <div
+                    key={`${item.id}-${item.productVariant}`}
+                    className="flex flex-col border-b pb-2 mb-2"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-secondary-900">
+                          {item.productName}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          Kích thước: {item.productVariantTierIdx}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() =>
+                          removeFromCart(item.id, item.productVariant)
+                        }
+                        className="text-red-500 text-xs hover:underline"
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          handleUpdateQuantity(item, e.target.value)
+                        }
+                        className="w-16 p-1 border rounded text-sm"
+                      />
+                      <span className="text-sm text-secondary-900">
+                        {(item.productPrice * item.quantity).toLocaleString(
+                          "vi-VN"
+                        )}{" "}
+                        VNĐ
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-secondary-900">Tạm tính:</span>
+                  <span className="text-sm text-secondary-900">
+                    {subtotal.toLocaleString("vi-VN")} VNĐ
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-secondary-900">
+                    Khuyến mãi:
+                  </span>
+                  <span className="text-sm text-green-600">
+                    {discount.toLocaleString("vi-VN")} VNĐ
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm text-secondary-900">
+                    Thuế (10%):
+                  </span>
+                  <span className="text-sm text-secondary-900">
+                    {tax.toLocaleString("vi-VN")} VNĐ
+                  </span>
+                </div>
+                <div className="flex justify-between items-center border-t pt-2">
+                  <span className="text-base font-semibold text-secondary-900">
+                    Tổng tiền:
+                  </span>
+                  <span className="text-base font-semibold text-primary-700">
+                    {finalTotal.toLocaleString("vi-VN")} VNĐ
+                  </span>
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <ButtonSolid
+                    content="Áp dụng khuyến mãi"
+                    onClick={handleDiscountWrapper}
+                    isDisabled={cartItems.length === 0}
+                    className="flex-1 px-4 py-2 bg-primary-500 text-secondary-100 rounded-sm disabled:opacity-50 text-base-semibold"
+                  />
+                  <ButtonSolid
+                    content="Thanh toán"
+                    onClick={handleCheckout}
+                    isDisabled={cartItems.length === 0}
+                    className="flex-1 px-4 py-2 bg-primary-700 text-secondary-100 rounded-sm disabled:opacity-50 text-base-semibold"
+                  />
+                </div>
+              </div>
             </div>
-            <div className="space-x-2 flex xsm:flex-col xsm:space-x-0 xsm:gap-2 sm:flex-row">
-              {/* <button
-                disabled={page === 1}
-                onClick={() => handlePageChange(page - 1)}
-                className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
-              >
-                Trang trước
-              </button> */}
-              <ButtonSolid
-                content="Trang trước"
-                iconLeft={<IoIosArrowBack />}
-                isDisabled={page === 1}
-                onClick={() => handlePageChange(page - 1)}
-                className="px-4 py-2 w-[150px] bg-gray-200 text-gray-800 rounded disabled:opacity-50 text-base-regular"
-              />
-              <ButtonSolid
-                content="Trang sau"
-                iconRight={<IoIosArrowForward />}
-                isDisabled={page === totalPages}
-                onClick={() => handlePageChange(page + 1)}
-                className="px-4 py-2 w-[150px] bg-gray-200 text-gray-800 rounded disabled:opacity-50 text-base-regular"
-              />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <div className="flex flex-col basis-[30%] bg-blue-400 p-4">Haha</div>
+      {isOpen && selectedProduct && (
+        <AddProductToCartModal
+          isOpen={isOpen}
+          onOpen={onOpen}
+          onOpenChange={onOpenChange}
+          onClose={handleCloseAddProductToCartModal}
+          onCallParent={handleCallParent}
+          product={selectedProduct}
+        />
+      )}
     </main>
   );
 };

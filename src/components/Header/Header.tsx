@@ -16,18 +16,19 @@ import { AuthType } from "@/types/auth.type";
 
 const Header = () => {
   const { auth, setAuth } = useContext(AppContext) as AuthType;
-  console.log("Auth: ", auth);
   const router = useRouter();
 
   const handleSignOut = () => {
     setAuth(undefined);
-
-    // Delete the JWT cookie
     document.cookie = "jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-
-    // Redirect after signing out
-    signOut({ callbackUrl: "/" });
+    signOut({ callbackUrl: "/auth/signIn" }); // Đồng bộ với /auth/signIn
   };
+
+  // Không đăng xuất ngay khi auth === undefined
+  // Thay vào đó, để Axios interceptor xử lý lỗi 401
+  if (auth === undefined) {
+    return null; // Hoặc hiển thị loading state
+  }
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between bg-primary-0 px-4 drop-shadow md:px-6 font-montserrat">
@@ -61,7 +62,7 @@ const Header = () => {
               aria-label="Static Actions"
               className="bg-primary-700 text-primary-0"
             >
-              {auth?.role == "NHÂN VIÊN" ? (
+              {auth?.role === "NHÂN VIÊN" ? (
                 <DropdownItem
                   key="myprofile"
                   onClick={() => router.replace("/employee/profile")}
