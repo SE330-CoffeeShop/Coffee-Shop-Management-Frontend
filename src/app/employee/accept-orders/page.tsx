@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Chip,
+  Button,
   Input,
   Pagination,
   Spinner,
@@ -19,8 +19,8 @@ import React, { Key, useCallback, useContext, useEffect, useMemo, useState } fro
 import useSWR from "swr";
 import axios from "@/lib/axiosInstance";
 import { toast } from "react-toastify";
-import { columns, statusOptions } from "@/data/order.data";
-import { OrderDetailDto, OrderDto, statusColorMap, statusDisplayMap } from "@/types/order.type";
+import { columns } from "@/data/order.data";
+import { OrderDetailDto, OrderDto } from "@/types/order.type";
 import { CartItemDisplay } from "@/components";
 import { formatNumberWithCommas } from "@/helpers";
 import { AppContext } from "@/contexts";
@@ -28,18 +28,17 @@ import { AuthType } from "@/types/auth.type";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
-const Orders = () => {
+const AcceptOrders = () => {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [filterCustomerName, setFilterCustomerName] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
   const { auth } = useContext(AppContext) as AuthType;
-  const { id, branchId } = auth || {};
+  const { branchId } = auth || {};
 
   const endpointOrders = useMemo(() => {
     if (!branchId) return null;
@@ -48,14 +47,14 @@ const Orders = () => {
       limit: rowsPerPage.toString(),
     });
     if (filterCustomerName) params.append("customerName", filterCustomerName);
-    const status = selectedStatus || "PROCESSING";
-    return `/orders/branch/${branchId}/status/${status}?${params.toString()}`;
-  }, [branchId, page, filterCustomerName, selectedStatus]);
+    return `/orders/branch/${branchId}/status/PENDING?${params.toString()}`;
+  }, [branchId, page, filterCustomerName]);
 
   const {
     data: ordersData,
     error: ordersError,
     isLoading: ordersLoading,
+    mutate: mutateOrders,
   } = useSWR(endpointOrders, fetcher, {
     keepPreviousData: true,
     revalidateOnFocus: false,
@@ -97,14 +96,33 @@ const Orders = () => {
   const loadingState =
     ordersLoading || orders.length === 0 ? "loading" : "idle";
 
-  const handleFilterStatus = (status: string) => {
-    setSelectedStatus(status === selectedStatus ? null : status);
-    setPage(1);
-  };
-
   const handleSearchCustomer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterCustomerName(e.target.value);
     setPage(1);
+  };
+
+  const handleCancelOrder = async () => {
+    if (!selectedOrderId) return;
+    try {
+      await axios.put(`/orders/${selectedOrderId}/cancel`);
+      toast.success("Đã huỷ đơn hàng thành công.");
+      setSelectedOrderId(null);
+      mutateOrders();
+    } catch (error) {
+      toast.error("Lỗi khi huỷ đơn hàng.");
+    }
+  };
+
+  const handleAcceptOrder = async () => {
+    if (!selectedOrderId) return;
+    try {
+      await axios.put(`/orders/${selectedOrderId}/accept`);
+      toast.success("Đã tiếp nhận đơn hàng thành công.");
+      setSelectedOrderId(null);
+      mutateOrders();
+    } catch (error) {
+      toast.error("Lỗi khi tiếp nhận đơn hàng.");
+    }
   };
 
   const renderCell = useCallback(
@@ -173,7 +191,7 @@ const Orders = () => {
             {/* Filters */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-bold text-gray-900">
-                Danh sách đơn hàng
+                Đơn hàng chờ xác nhận
               </h2>
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Input
@@ -189,28 +207,10 @@ const Orders = () => {
                 />
               </div>
             </div>
-            {/* Status Chips */}
-            <div className="flex flex-wrap gap-2">
-              {statusOptions.map((status) => (
-                <Chip
-                  key={status.uid}
-                  className={`capitalize cursor-pointer font-medium px-3 py-1 transition-all duration-200 ${
-                    selectedStatus === status.uid
-                      ? "text-primary-700 border-b-2 border-primary-700 border-t-transparent border-l-transparent border-r-transparent"
-                      : "text-gray-700 hover:text-primary-400"
-                  }`}
-                  size="md"
-                  radius="sm"
-                  onClick={() => handleFilterStatus(status.uid)}
-                >
-                  {status.name}
-                </Chip>
-              ))}
-            </div>
             {/* Table Rendering */}
             <div className="h-[500px] overflow-auto rounded-xl bg-white shadow-sm">
               <Table
-                aria-label="Bảng danh sách đơn hàng"
+                aria-label="Bảng danh sách đơn hàng chờ xác nhận"
                 className="h-full w-full"
                 shadow="none"
                 selectionMode="none"
@@ -276,7 +276,7 @@ const Orders = () => {
           </h3>
           {selectedOrderId ? (
             orderDetails.length > 0 ? (
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 flex-grow">
                 {orderDetails.map((item, index) => (
                   <CartItemDisplay
                     key={index}
@@ -292,9 +292,27 @@ const Orders = () => {
                     }}
                   />
                 ))}
+                <div className="mt-auto flex gap-2">
+                  <Button
+                    color="danger"
+                    variant="flat"
+                    className="flex-1"
+                    onClick={handleCancelOrder}
+                  >
+                    Huỷ đơn hàng
+                  </Button>
+                  <Button
+                    color="success"
+                    variant="flat"
+                    className="flex-1"
+                    onClick={handleAcceptOrder}
+                  >
+                    Tiếp nhận đơn hàng
+                  </Button>
+                </div>
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">Không có chi tiết đơn hàng.</p>
+              <p className="text-gray-500 text-sm flex-grow">Không có chi tiết đơn hàng.</p>
             )
           ) : (
             <p className="text-gray-500 text-sm flex-grow">
@@ -307,4 +325,4 @@ const Orders = () => {
   );
 };
 
-export default Orders;
+export default AcceptOrders;

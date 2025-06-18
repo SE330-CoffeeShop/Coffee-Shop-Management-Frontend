@@ -100,9 +100,6 @@ const LoginPage = () => {
             </span>
           </button>
         </div>
-        <span className="hover:cursor-pointer hover:underline">
-          Forgot password?
-        </span>
       </div>
     </div>
   );

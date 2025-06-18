@@ -1,11 +1,16 @@
-export type UserAuth = {
+export interface UserAuth {
   id: string;
-  branchId: string;
+  email: string;
   name: string;
-  accessToken: string;
+  lastName: string;
+  gender: string;
+  phoneNumber: string;
+  birthday: string;
   role: string;
+  branchId: string;
   avatar: string;
-};
+  accessToken: string;
+}
 
 export type AuthType = {
   auth: UserAuth;

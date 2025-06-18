@@ -91,7 +91,7 @@ module.exports = {
   		colors: {
   			stroke: '#191919',
   			'bg-white': '#FCFCFD',
-  			'bg-content': 'F3F4F7',
+  			'bg-content': '#F3F4F7',
   			'bg-notification': 'rgba(188,167,157,0.1)',
   			'primary-900': '#024447',
   			'primary-800': '#045651',
