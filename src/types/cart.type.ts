@@ -7,8 +7,8 @@ export type CartItem = {
   productPrice: number;
   productCategoryId: string;
   quantity: number;
-  productVariant: string; // variant.id
-  productVariantTierIdx: string; // variant.variantTierIdx
+  productVariant: string;
+  productVariantTierIdx: string;
 };
 
 export type CartContextType = {
@@ -27,4 +27,9 @@ export type CartContextType = {
   ) => void;
   clearCart: () => void;
   totalPrice: number;
+  discount: number;
+  setDiscount: (discount: number) => void;
+  taxRate: number;
+  tax: number;
+  finalTotal: number;
 };

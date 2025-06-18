@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import CartContext from "@/contexts/CartContext";
-import { CartItem } from "@/types/cart.type";
+import { CartItem, CartContextType } from "@/types/cart.type";
 import { ProductType } from "@/types/product.type";
 
 const mapProductToItemCart = (
@@ -25,6 +25,16 @@ const mapProductToItemCart = (
 
 const CartProviders = ({ children }: { children: React.ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [discount, setDiscount] = useState<number>(0);
+  const taxRate = 0.1; // 10% fixed tax
+
+  const totalPrice = cartItems.reduce(
+    (total, item) => total + item.productPrice * item.quantity,
+    0
+  );
+
+  const tax = (totalPrice - discount) * taxRate;
+  const finalTotal = totalPrice - discount + tax;
 
   const addToCart = (
     product: ProductType,
@@ -80,24 +90,25 @@ const CartProviders = ({ children }: { children: React.ReactNode }) => {
 
   const clearCart = () => {
     setCartItems([]);
+    setDiscount(0); // Reset discount when clearing cart
   };
 
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.productPrice * item.quantity,
-    0
-  );
+  const contextValue: CartContextType = {
+    cartItems,
+    addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    totalPrice,
+    discount,
+    setDiscount,
+    taxRate,
+    tax,
+    finalTotal,
+  };
 
   return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalPrice,
-      }}
-    >
+    <CartContext.Provider value={contextValue}>
       {children}
     </CartContext.Provider>
   );

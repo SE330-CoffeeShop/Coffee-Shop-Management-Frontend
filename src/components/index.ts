@@ -7,6 +7,10 @@ import ESidebar from "@/components/Sidebar/Employee/ESidebar";
 import Header from "@/components/Header/Header";
 import SearchBar from "@/components/SearchBar/SearchBar";
 import ProductCard from "@/components/ProductCard/ProductCard";
+import CartItemComponent from "@/components/CartItem/CartItem";
+import CartItemDisplay from "@/components/CartItem/CartItemDisplay";
+import PaymentMethodCard from "@/components/PaymentMethodCard/PaymentMethdCard";
+import DiscountDetailDisplay from "@/components/DiscountCard/DiscountDetailDisplay";
 
 export {
   ButtonOutline,
@@ -18,4 +22,8 @@ export {
   Header,
   SearchBar,
   ProductCard,
+  CartItemComponent,
+  CartItemDisplay,
+  PaymentMethodCard,
+  DiscountDetailDisplay,
 };

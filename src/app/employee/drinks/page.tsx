@@ -13,10 +13,9 @@ import AddProductToCartModal from "@/app/employee/drinks/AddProductToCart.modal"
 import { toast } from "react-toastify";
 import CartContext from "@/contexts/CartContext";
 import { CartContextType, CartItem } from "@/types/cart.type";
-import {
-  ApplyDiscountDto,
-  applyDiscountToCart,
-} from "@/services/employee.services/CartServices";
+import { applyDiscountToCart } from "@/services/employee.services/CartServices";
+import CartItemComponent from "@/components/CartItem/CartItem";
+import { useRouter } from "next/navigation";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -36,16 +35,11 @@ const debounce = <T extends (...args: any[]) => void>(
 };
 
 const Drinks = () => {
-  const { cartItems, removeFromCart, updateQuantity, totalPrice } = useContext(
+  const router = useRouter();
+
+  const { cartItems, removeFromCart, updateQuantity, totalPrice, discount, setDiscount, tax, finalTotal } = useContext(
     CartContext
   ) as CartContextType;
-
-  // State for discount and tax
-  const [discount, setDiscount] = useState<number>(0);
-  const taxRate = 0.1; // 10% fixed tax
-  const subtotal = totalPrice;
-  const tax = (subtotal - discount) * taxRate;
-  const finalTotal = subtotal - discount + tax;
 
   //! CONTROL Add Product To Cart modal
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
@@ -171,8 +165,12 @@ const Drinks = () => {
   };
 
   const handleCheckout = () => {
+    if (cartItems.length === 0) {
+      toast.error("Giỏ hàng trống, không thể thanh toán!");
+      return;
+    }
     toast.info("Chuyển hướng đến trang thanh toán...");
-    // Ví dụ: router.push('/checkout');
+    router.push("/employee/payment-order");
   };
 
   const handleDiscountWrapper = () => {
@@ -297,53 +295,21 @@ const Drinks = () => {
             <div className="flex flex-col h-full gap-4">
               <div className="flex-grow">
                 {cartItems.map((item) => (
-                  <div
+                  <CartItemComponent
                     key={`${item.id}-${item.productVariant}`}
-                    className="flex flex-col border-b pb-2 mb-2"
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-secondary-900">
-                          {item.productName}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          Kích thước: {item.productVariantTierIdx}
-                        </span>
-                      </div>
-                      <button
-                        onClick={() =>
-                          removeFromCart(item.id, item.productVariant)
-                        }
-                        className="text-red-500 text-xs hover:underline"
-                      >
-                        Xóa
-                      </button>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleUpdateQuantity(item, e.target.value)
-                        }
-                        className="w-16 p-1 border rounded text-sm"
-                      />
-                      <span className="text-sm text-secondary-900">
-                        {(item.productPrice * item.quantity).toLocaleString(
-                          "vi-VN"
-                        )}{" "}
-                        VNĐ
-                      </span>
-                    </div>
-                  </div>
+                    item={item}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemove={() =>
+                      removeFromCart(item.id, item.productVariant)
+                    }
+                  />
                 ))}
               </div>
               <div className="mt-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-secondary-900">Tạm tính:</span>
                   <span className="text-sm text-secondary-900">
-                    {subtotal.toLocaleString("vi-VN")} VNĐ
+                    {totalPrice.toLocaleString("vi-VN")} VNĐ
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
@@ -351,7 +317,7 @@ const Drinks = () => {
                     Khuyến mãi:
                   </span>
                   <span className="text-sm text-green-600">
-                    {discount.toLocaleString("vi-VN")} VNĐ
+                    -{discount.toLocaleString("vi-VN")} VNĐ
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
