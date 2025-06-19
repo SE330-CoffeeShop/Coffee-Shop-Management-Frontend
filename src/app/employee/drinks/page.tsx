@@ -189,8 +189,6 @@ const Drinks = () => {
         cartDetailQuantity: item.quantity,
       }));
 
-      console.log("cartDetails: ", cartDetails);
-
       const cartDetailsProps = {
         cartDetails: cartDetails,
       };
@@ -199,7 +197,7 @@ const Drinks = () => {
 
       setDiscount(discountAmount);
       toast.success(
-        `Áp dụng khuyến mãi thành công: ${discountAmount.toLocaleString(
+        `Áp dụng khuyến mãi thành công: ${discount.toLocaleString(
           "vi-VN"
         )} VNĐ`
       );
@@ -322,7 +320,7 @@ const Drinks = () => {
                 </div>
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-sm text-secondary-900">
-                    Thuế (10%):
+                    Thuế (5%):
                   </span>
                   <span className="text-sm text-secondary-900">
                     {tax.toLocaleString("vi-VN")} VNĐ

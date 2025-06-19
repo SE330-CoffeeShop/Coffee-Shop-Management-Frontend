@@ -2,24 +2,63 @@
 
 import { useContext, useState } from "react";
 import { CartItemDisplay, PaymentMethodCard } from "@/components";
+import PaymentTimerModal from "@/app/employee/payment-order/PaymentTimerModal";
+import PaymentSuccessModal from "@/app/employee/payment-order/PaymentSuccessModal";
+import CashPaymentModal from "@/app/employee/payment-order/CashPaymentModal";
 import CartContext from "@/contexts/CartContext";
-import { CartContextType } from "@/types/cart.type";
+import { CartContextType, CartItem } from "@/types/cart.type";
 import { PaymentMethodDto } from "@/types/payment-method.type";
 import axios from "@/lib/axiosInstance";
 import useSWR from "swr";
 import ButtonSolid from "@/components/Button/ButtonSolid";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import {
+  cancelPendingOrder,
+  createOrder,
+  acceptPendingOrder,
+} from "@/services/employee.services/OrderServices";
+import { getPaymentHandler } from "@/app/employee/payment-order/PaymentFactory";
+import {
+  getOrderPaymentByOrderId,
+  updateOrderPaymentStatusFail,
+} from "@/services/employee.services/PaymentServices";
 
+// Fetcher for SWR
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+
+// Order Creation Function
+const createOrderAndGetId = async (
+  paymentMethodId: string,
+  cartItems: CartItem[]
+): Promise<string> => {
+  const response = await createOrder(
+    paymentMethodId,
+    cartItems.map((item) => ({
+      variantId: item.productVariant,
+      cartDetailQuantity: item.quantity,
+    }))
+  );
+  if (response && response.statusCode === 201) {
+    return response.data.id;
+  }
+  throw new Error("Không thể tạo đơn hàng");
+};
 
 const PaymentOrder = () => {
   const router = useRouter();
-  const { cartItems, totalPrice, discount, tax, finalTotal, clearCart } = useContext(CartContext) as CartContextType;
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string | null>(null);
+  const { cartItems, totalPrice, discount, tax, finalTotal, clearCart } =
+    useContext(CartContext) as CartContextType;
+  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<
+    string | null
+  >(null);
+  const [isTimerModalOpen, setIsTimerModalOpen] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isCashModalOpen, setIsCashModalOpen] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [cashTotal, setCashTotal] = useState<number>(0);
 
   const endpointPaymentMethod = `/payment/payment-method/all?page=1&limit=100`;
-  // Fetch payment methods
   const {
     data: paymentMethodsData,
     error: paymentMethodsError,
@@ -30,6 +69,29 @@ const PaymentOrder = () => {
   });
 
   const paymentMethods: PaymentMethodDto[] = paymentMethodsData?.data || [];
+
+  const cancelOrderAndPayment = async (orderId: string) => {
+    try {
+      const responseCancelledOrder = await cancelPendingOrder(orderId);
+      if (!responseCancelledOrder) {
+        throw new Error("Không thể hủy đơn hàng.");
+      }
+
+      const paymentDetails = await getOrderPaymentByOrderId(orderId);
+      if (paymentDetails) {
+        const responseUpdatePaymentStatusFail =
+          await updateOrderPaymentStatusFail(paymentDetails.data.orderPaymentId);
+        if (!responseUpdatePaymentStatusFail) {
+          throw new Error("Không thể hủy phương thức thanh toán đơn hàng.");
+        }
+      }
+      return true;
+    } catch (error) {
+      console.error("Lỗi khi hủy đơn hàng và phương thức thanh toán:", error);
+      toast.error("Lỗi khi hủy đơn hàng. Vui lòng thử lại.");
+      return false;
+    }
+  };
 
   const handleConfirmPayment = async () => {
     if (!selectedPaymentMethodId) {
@@ -42,19 +104,68 @@ const PaymentOrder = () => {
     }
 
     try {
-      // TODO: Call payment confirmation API
-      // Example: await axios.post("/payment/confirm", { paymentMethodId: selectedPaymentMethodId, cartItems });
-      toast.success("Thanh toán thành công!");
-      // clearCart();
-      // router.push("/employee/drinks");
+      const orderId = await createOrderAndGetId(selectedPaymentMethodId, cartItems);
+      setOrderId(orderId);
+      setCashTotal(finalTotal); // Capture total for cash payments
+
+      const handler = getPaymentHandler(selectedPaymentMethodId);
+      await handler.initiatePayment(orderId);
+
+      setIsTimerModalOpen(true);
     } catch (error) {
-      console.error("Payment confirmation error:", error);
+      console.error("Lỗi thanh toán:", error);
       toast.error("Lỗi khi thanh toán. Vui lòng thử lại.");
     }
   };
 
+  const handleCancelOrder = async () => {
+    if (orderId) {
+      const success = await cancelOrderAndPayment(orderId);
+      if (success) {
+        toast.success("Đơn hàng đã bị hủy.");
+        setIsTimerModalOpen(false);
+        clearCart();
+        router.push("/employee/drinks");
+      }
+    }
+  };
+
+  const handleChangePaymentMethod = async () => {
+    if (orderId) {
+      const success = await cancelOrderAndPayment(orderId);
+      if (!success) {
+        return;
+      }
+    }
+    setIsTimerModalOpen(false);
+    setSelectedPaymentMethodId(null);
+    setOrderId(null);
+  };
+
+  const handleConfirmCash = async () => {
+    if (orderId) {
+      try {
+        const responseCompleteOrder = await acceptPendingOrder(orderId);
+        if (responseCompleteOrder) {
+          setIsTimerModalOpen(false);
+          toast.success("Đơn hàng đã được hoàn thành!");
+          clearCart();
+          setIsCashModalOpen(true);
+        } else {
+          throw new Error("Không thể hoàn thành đơn hàng");
+        }
+      } catch (error) {
+        console.error("Lỗi xác nhận thanh toán tiền mặt:", error);
+        toast.error("Lỗi khi xác nhận thanh toán. Vui lòng thử lại.");
+      }
+    }
+  };
+
+  const isCashPayment =
+    selectedPaymentMethodId === process.env.NEXT_PUBLIC_PAYMENT_METHOD_CASH;
+
   return (
-    <main className="flex w-full min-h-screen gap-2 bg-secondary-100">
+    <>
       <div className="flex h-full w-full">
         {/* Payment methods */}
         <div className="flex flex-col basis-[70%] p-4">
@@ -73,19 +184,21 @@ const PaymentOrder = () => {
             ) : paymentMethodsError ? (
               <p className="text-red-500">Lỗi khi tải hình thức thanh toán.</p>
             ) : paymentMethods.length === 0 ? (
-              <p className="text-gray-500">Không có hình thức thanh toán nào.</p>
+              <p className="text-gray-500">
+                Không có hình thức thanh toán nào.
+              </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {paymentMethods
-                  // .filter((method) => method.active)
-                  .map((method) => (
-                    <PaymentMethodCard
-                      key={method.paymentMethodId}
-                      paymentMethod={method}
-                      isSelected={selectedPaymentMethodId === method.paymentMethodId}
-                      onSelect={setSelectedPaymentMethodId}
-                    />
-                  ))}
+                {paymentMethods.map((method) => (
+                  <PaymentMethodCard
+                    key={method.paymentMethodId}
+                    paymentMethod={method}
+                    isSelected={
+                      selectedPaymentMethodId === method.paymentMethodId
+                    }
+                    onSelect={setSelectedPaymentMethodId}
+                  />
+                ))}
               </div>
             )}
             {!paymentMethodsLoading && paymentMethods.length > 0 && (
@@ -123,13 +236,15 @@ const PaymentOrder = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-secondary-900">Khuyến mãi:</span>
+                  <span className="text-sm text-secondary-900">
+                    Khuyến mãi:
+                  </span>
                   <span className="text-sm text-green-600">
                     -{discount.toLocaleString("vi-VN")} VNĐ
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-secondary-900">Thuế (10%):</span>
+                  <span className="text-sm text-secondary-900">Thuế (5%):</span>
                   <span className="text-sm text-secondary-900">
                     {tax.toLocaleString("vi-VN")} VNĐ
                   </span>
@@ -147,7 +262,31 @@ const PaymentOrder = () => {
           )}
         </div>
       </div>
-    </main>
+      {isTimerModalOpen && (
+        <PaymentTimerModal
+          isOpen={isTimerModalOpen}
+          onClose={() => setIsTimerModalOpen(false)}
+          onCancelOrder={handleCancelOrder}
+          onChangePaymentMethod={handleChangePaymentMethod}
+          timeLeft={300}
+          isCashPayment={isCashPayment}
+          onConfirmCash={handleConfirmCash}
+        />
+      )}
+      {isSuccessModalOpen && (
+        <PaymentSuccessModal
+          isOpen={isSuccessModalOpen}
+          onClose={() => setIsSuccessModalOpen(false)}
+        />
+      )}
+      {isCashModalOpen && (
+        <CashPaymentModal
+          isOpen={isCashModalOpen}
+          onClose={() => setIsCashModalOpen(false)}
+          totalAmount={cashTotal}
+        />
+      )}
+    </>
   );
 };
 

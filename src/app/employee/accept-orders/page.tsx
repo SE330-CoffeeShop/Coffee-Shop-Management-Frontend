@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Button,
+  Chip,
   Input,
   Pagination,
   Spinner,
@@ -12,24 +12,38 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
+  Button,
 } from "@heroui/react";
-import { EyeIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import React, { Key, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  EyeIcon,
+  MagnifyingGlassIcon,
+  CheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import React, {
+  Key,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import useSWR from "swr";
 import axios from "@/lib/axiosInstance";
 import { toast } from "react-toastify";
 import { columns } from "@/data/order.data";
 import { OrderDetailDto, OrderDto } from "@/types/order.type";
-import { CartItemDisplay } from "@/components";
 import { formatNumberWithCommas } from "@/helpers";
 import { AppContext } from "@/contexts";
 import { AuthType } from "@/types/auth.type";
+import {
+  acceptPendingOrder,
+  cancelPendingOrder,
+} from "@/services/employee.services/OrderServices";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 const AcceptOrders = () => {
-  const router = useRouter();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [filterCustomerName, setFilterCustomerName] = useState<string>("");
@@ -38,7 +52,7 @@ const AcceptOrders = () => {
   const rowsPerPage = 10;
 
   const { auth } = useContext(AppContext) as AuthType;
-  const { branchId } = auth || {};
+  const { branchId } = auth;
 
   const endpointOrders = useMemo(() => {
     if (!branchId) return null;
@@ -46,9 +60,8 @@ const AcceptOrders = () => {
       page: page.toString(),
       limit: rowsPerPage.toString(),
     });
-    if (filterCustomerName) params.append("customerName", filterCustomerName);
     return `/orders/branch/${branchId}/status/PENDING?${params.toString()}`;
-  }, [branchId, page, filterCustomerName]);
+  }, [branchId, page]);
 
   const {
     data: ordersData,
@@ -61,7 +74,7 @@ const AcceptOrders = () => {
   });
 
   const endpointOrderDetails = selectedOrderId
-    ? `/order-details/${selectedOrderId}`
+    ? `/order-details/by-order/${selectedOrderId}`
     : null;
 
   const { data: orderDetailsData, error: orderDetailsError } = useSWR(
@@ -78,10 +91,18 @@ const AcceptOrders = () => {
       setTotalOrders(0);
       toast.error("Lỗi khi tải danh sách đơn hàng.");
     } else if (ordersData?.data) {
-      setOrders(ordersData.data);
+      let filteredOrders = ordersData.data;
+      if (filterCustomerName) {
+        filteredOrders = filteredOrders.filter((order: OrderDto) =>
+          order.userName
+            .toLowerCase()
+            .includes(filterCustomerName.toLowerCase())
+        );
+      }
+      setOrders(filteredOrders);
       setTotalOrders(ordersData.paging?.total || 0);
     }
-  }, [ordersData, ordersError]);
+  }, [ordersData, ordersError, filterCustomerName]);
 
   useEffect(() => {
     if (orderDetailsError) {
@@ -101,27 +122,27 @@ const AcceptOrders = () => {
     setPage(1);
   };
 
-  const handleCancelOrder = async () => {
-    if (!selectedOrderId) return;
+  const handleAcceptOrder = async (orderId: string) => {
     try {
-      await axios.put(`/orders/${selectedOrderId}/cancel`);
-      toast.success("Đã huỷ đơn hàng thành công.");
-      setSelectedOrderId(null);
-      mutateOrders();
+      const response = await acceptPendingOrder(orderId);
+      if (response) {
+        toast.success("Đơn hàng đã được chấp nhận.");
+        mutateOrders();
+      }
     } catch (error) {
-      toast.error("Lỗi khi huỷ đơn hàng.");
+      toast.error("Lỗi khi chấp nhận đơn hàng.");
     }
   };
 
-  const handleAcceptOrder = async () => {
-    if (!selectedOrderId) return;
+  const handleRejectOrder = async (orderId: string) => {
     try {
-      await axios.put(`/orders/${selectedOrderId}/accept`);
-      toast.success("Đã tiếp nhận đơn hàng thành công.");
-      setSelectedOrderId(null);
-      mutateOrders();
+      const response = await cancelPendingOrder(orderId);
+      if (response) {
+        toast.success("Đơn hàng đã bị hủy.");
+        mutateOrders();
+      }
     } catch (error) {
-      toast.error("Lỗi khi tiếp nhận đơn hàng.");
+      toast.error("Lỗi khi hủy đơn hàng.");
     }
   };
 
@@ -139,10 +160,16 @@ const AcceptOrders = () => {
         case "orderId":
           return <span className="text-sm text-gray-900">{order.id}</span>;
         case "employeeName":
-          return <span className="text-sm text-gray-600">{order.employeeName || "N/A"}</span>;
-        case "customerName":
           return (
-            <span className="text-sm text-gray-900">{cellValue || "Khách vãng lai"}</span>
+            <span className="text-sm text-gray-600">
+              {order.employeeName || "N/A"}
+            </span>
+          );
+        case "userName":
+          return (
+            <span className="text-sm text-gray-900">
+              {cellValue || "Khách vãng lai"}
+            </span>
           );
         case "createdAt":
           return (
@@ -156,12 +183,15 @@ const AcceptOrders = () => {
         case "totalAmount":
           return (
             <span className="text-sm font-semibold text-primary-700">
-              {formatNumberWithCommas(String(order.orderTotalCostAfterDiscount))} VNĐ
+              {formatNumberWithCommas(
+                String(order.orderTotalCostAfterDiscount)
+              )}{" "}
+              VNĐ
             </span>
           );
         case "actions":
           return (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center gap-2">
               <Tooltip
                 content="Xem chi tiết"
                 className="bg-primary-700 text-white px-2 py-1 rounded-md text-xs"
@@ -172,6 +202,32 @@ const AcceptOrders = () => {
                 >
                   <EyeIcon className="size-5" />
                 </span>
+              </Tooltip>
+              <Tooltip
+                content="Chấp nhận"
+                className="bg-green-600 text-white px-2 py-1 rounded-md text-xs"
+              >
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="success"
+                  onClick={async () => handleAcceptOrder(order.id)}
+                >
+                  <CheckIcon className="size-4" />
+                </Button>
+              </Tooltip>
+              <Tooltip
+                content="Hủy"
+                className="bg-red-600 text-white px-2 py-1 rounded-md text-xs"
+              >
+                <Button
+                  isIconOnly
+                  size="sm"
+                  color="danger"
+                  onClick={async () => handleRejectOrder(order.id)}
+                >
+                  <XMarkIcon className="size-4" />
+                </Button>
               </Tooltip>
             </div>
           );
@@ -191,7 +247,7 @@ const AcceptOrders = () => {
             {/* Filters */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-bold text-gray-900">
-                Đơn hàng chờ xác nhận
+                Danh sách đơn hàng chờ xác nhận
               </h2>
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Input
@@ -210,7 +266,7 @@ const AcceptOrders = () => {
             {/* Table Rendering */}
             <div className="h-[500px] overflow-auto rounded-xl bg-white shadow-sm">
               <Table
-                aria-label="Bảng danh sách đơn hàng chờ xác nhận"
+                aria-label="Bảng danh sách đơn hàng"
                 className="h-full w-full"
                 shadow="none"
                 selectionMode="none"
@@ -276,43 +332,37 @@ const AcceptOrders = () => {
           </h3>
           {selectedOrderId ? (
             orderDetails.length > 0 ? (
-              <div className="flex flex-col gap-4 flex-grow">
+              <div className="flex flex-col gap-4">
                 {orderDetails.map((item, index) => (
-                  <CartItemDisplay
-                    key={index}
-                    item={{
-                      id: index.toString(),
-                      productName: item.productName,
-                      productThumb: "/images/placeholder.png",
-                      productPrice: item.price,
-                      productCategoryId: "",
-                      quantity: item.quantity,
-                      productVariant: "",
-                      productVariantTierIdx: "",
-                    }}
-                  />
+                  <div key={index} className="border rounded-lg p-4 bg-gray-50">
+                    <img
+                      src={item.productThumb}
+                      alt={item.productName}
+                      className="w-20 h-20 object-cover rounded-md mb-2"
+                    />
+                    <p className="text-sm font-semibold text-gray-900">
+                      {item.productName}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Số lượng: {item.orderDetailQuantity}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Giá:{" "}
+                      {formatNumberWithCommas(
+                        String(item.orderDetailUnitPrice)
+                      )}{" "}
+                      VNĐ
+                    </p>
+                    <p className="text-sm text-gray-600 capitalize">
+                      Kích thước: {item.variantTierId}
+                    </p>
+                  </div>
                 ))}
-                <div className="mt-auto flex gap-2">
-                  <Button
-                    color="danger"
-                    variant="flat"
-                    className="flex-1"
-                    onClick={handleCancelOrder}
-                  >
-                    Huỷ đơn hàng
-                  </Button>
-                  <Button
-                    color="success"
-                    variant="flat"
-                    className="flex-1"
-                    onClick={handleAcceptOrder}
-                  >
-                    Tiếp nhận đơn hàng
-                  </Button>
-                </div>
               </div>
             ) : (
-              <p className="text-gray-500 text-sm flex-grow">Không có chi tiết đơn hàng.</p>
+              <p className="text-gray-500 text-sm">
+                Không có chi tiết đơn hàng.
+              </p>
             )
           ) : (
             <p className="text-gray-500 text-sm flex-grow">

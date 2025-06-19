@@ -17,7 +17,6 @@ const PaymentMethodCard = ({
   // Fallback image based on payment method name
   const getImageSrc = () => {
     const name = paymentMethod.paymentMethodName.toLowerCase();
-    console.log("name", name);
     if (name.includes("zalo pay")) return "/images/payment/zalo-pay.svg";
     if (name.includes("momo")) return "/images/payment/momo.svg";
     if (name.includes("paypal")) return "/images/payment/paypal.svg";

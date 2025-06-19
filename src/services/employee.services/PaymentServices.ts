@@ -1,7 +1,25 @@
 import axios from "@/lib/axiosInstance";
 
-const fetcher = (url: string) => axios.get(url).then((res) => res.data);
+export const getOrderPaymentByOrderId = async (
+  orderId: string
+): Promise<any> => {
+  try {
+    const response = await axios.get(`/payment/order/by-order/${orderId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error GET ORDER PAYMENT BY ORDER ID (Employee):", error);
+    throw error;
+  }
+};
 
-export const getAllPaymentMethod = () => {
-
-}
+export const updateOrderPaymentStatusFail = async (
+  orderPayemntId: string
+): Promise<any> => {
+  try {
+    const response = await axios.patch(`/payment/order/${orderPayemntId}/status?status=FAILED`);
+    return response.data;
+  } catch (error) {
+    console.error("Error UPDATE FAILED ORDER PAYMENT STATUS (Employee):", error);
+    throw error;
+  }
+};

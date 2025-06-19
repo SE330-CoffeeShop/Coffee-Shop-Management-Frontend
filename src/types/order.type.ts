@@ -5,23 +5,36 @@ export type OrderDto = {
   orderTotalCost: number;
   orderDiscountCost: number;
   orderTotalCostAfterDiscount: number;
-  orderStatus: "CHỜ XÁC NHẬN" | "ĐANG XỬ LÝ" | "HOÀN THÀNH" | "ĐANG VẬN CHUYỂN" | "ĐÃ GIAO" | "ĐÃ HỦY";
+  orderStatus:
+    | "ĐANG CHỜ"
+    | "ĐANG XỬ LÝ"
+    | "HOÀN TẤT"
+    | "ĐANG GIAO HÀNG"
+    | "ĐÃ GIAO"
+    | "ĐÃ HỦY";
   orderTrackingNumber: string;
   employeeId: string;
   employeeName: string;
   userId: string;
   shippingAddressId?: string;
-  customerName: string;
+  userName: string;
 };
 
 export type OrderDetailDto = {
+  id: string;
+  orderId: string;
   productName: string;
-  quantity: number;
-  price: number;
-  total: number;
+  orderDetailQuantity: number;
+  orderDetailUnitPrice: number;
+  productVariantId: string;
+  variantTierId: string;
+  productThumb: string;
 };
 
-export const statusColorMap: Record<string, "default" | "primary" | "success" | "warning" | "danger"> = {
+export const statusColorMap: Record<
+  string,
+  "default" | "primary" | "success" | "warning" | "danger"
+> = {
   "CHỜ XÁC NHẬN": "default",
   "ĐANG XỬ LÝ": "primary",
   "HOÀN THÀNH": "success",
