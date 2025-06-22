@@ -17,6 +17,8 @@ export type OrderDto = {
   employeeName: string;
   userId: string;
   shippingAddressId?: string;
+  shippingAddressName?: string;
+  userPhoneNumber?:string;
   userName: string;
 };
 

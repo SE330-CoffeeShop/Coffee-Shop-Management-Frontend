@@ -60,7 +60,7 @@ const AcceptOrders = () => {
       page: page.toString(),
       limit: rowsPerPage.toString(),
     });
-    return `/orders/branch/${branchId}/status/PENDING?${params.toString()}`;
+    return `/orders/branch/status/PENDING?${params.toString()}`;
   }, [branchId, page]);
 
   const {

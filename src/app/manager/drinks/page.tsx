@@ -33,7 +33,9 @@ const Drinks = () => {
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [productCategories, setProductCategories] = useState<ProductCategoryType[]>([]);
+  const [productCategories, setProductCategories] = useState<
+    ProductCategoryType[]
+  >([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
 
@@ -134,13 +136,11 @@ const Drinks = () => {
               ))}
             </select>
             <SearchBar onSearch={handleSearch} />
-            <Button
-              color="primary"
+            <ButtonSolid
+              content="Thêm vào giỏ hàng"
+              className="px-4 py-2 bg-primary-500 text-primary-0 rounded-xl hover:bg-primary-600 transition sm:line-clamp-1"
               onClick={onOpen}
-              className="px-4 py-2 bg-primary-700 text-secondary-100 rounded-sm text-base-semibold"
-            >
-              Thêm sản phẩm
-            </Button>
+            />
           </div>
         </div>
         <div className="mt-4">

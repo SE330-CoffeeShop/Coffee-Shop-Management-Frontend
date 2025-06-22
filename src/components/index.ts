@@ -6,11 +6,11 @@ import { classNames } from "@/components/className";
 import ESidebar from "@/components/Sidebar/Employee/ESidebar";
 import Header from "@/components/Header/Header";
 import SearchBar from "@/components/SearchBar/SearchBar";
-import ProductCard from "@/components/ProductCard/ProductCard";
+import ProductCard from "@/components/Card/ProductCard";
 import CartItemComponent from "@/components/CartItem/CartItem";
 import CartItemDisplay from "@/components/CartItem/CartItemDisplay";
-import PaymentMethodCard from "@/components/PaymentMethodCard/PaymentMethdCard";
-import DiscountDetailDisplay from "@/components/DiscountCard/DiscountDetailDisplay";
+import PaymentMethodCard from "@/components/Card/PaymentMethdCard";
+import DiscountDetailDisplay from "@/components/Card/DiscountDetailDisplay";
 
 export {
   ButtonOutline,

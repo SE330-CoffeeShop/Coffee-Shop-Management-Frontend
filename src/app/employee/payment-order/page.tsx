@@ -1,6 +1,6 @@
 "use client";
 
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import { CartItemDisplay, PaymentMethodCard } from "@/components";
 import PaymentTimerModal from "@/app/employee/payment-order/PaymentTimerModal";
 import PaymentSuccessModal from "@/app/employee/payment-order/PaymentSuccessModal";
@@ -57,6 +57,9 @@ const PaymentOrder = () => {
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [cashTotal, setCashTotal] = useState<number>(0);
+  const [isPolling, setIsPolling] = useState(false);
+  const [pollInterval, setPollInterval] = useState<NodeJS.Timeout | null>(null);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   const endpointPaymentMethod = `/payment/payment-method/all?page=1&limit=100`;
   const {
@@ -106,12 +109,15 @@ const PaymentOrder = () => {
     try {
       const orderId = await createOrderAndGetId(selectedPaymentMethodId, cartItems);
       setOrderId(orderId);
-      setCashTotal(finalTotal); // Capture total for cash payments
+      setCashTotal(finalTotal);
 
       const handler = getPaymentHandler(selectedPaymentMethodId);
       await handler.initiatePayment(orderId);
 
       setIsTimerModalOpen(true);
+      if (selectedPaymentMethodId !== process.env.NEXT_PUBLIC_PAYMENT_METHOD_CASH) {
+        setIsPolling(true);
+      }
     } catch (error) {
       console.error("Lỗi thanh toán:", error);
       toast.error("Lỗi khi thanh toán. Vui lòng thử lại.");
@@ -120,6 +126,9 @@ const PaymentOrder = () => {
 
   const handleCancelOrder = async () => {
     if (orderId) {
+      setIsPolling(false);
+      if (pollInterval) clearInterval(pollInterval);
+      if (timeoutId) clearTimeout(timeoutId);
       const success = await cancelOrderAndPayment(orderId);
       if (success) {
         toast.success("Đơn hàng đã bị hủy.");
@@ -132,6 +141,9 @@ const PaymentOrder = () => {
 
   const handleChangePaymentMethod = async () => {
     if (orderId) {
+      setIsPolling(false);
+      if (pollInterval) clearInterval(pollInterval);
+      if (timeoutId) clearTimeout(timeoutId);
       const success = await cancelOrderAndPayment(orderId);
       if (!success) {
         return;
@@ -160,6 +172,69 @@ const PaymentOrder = () => {
       }
     }
   };
+
+  const onTimeout = async () => {
+    if (orderId) {
+      setIsPolling(false);
+      if (pollInterval) clearInterval(pollInterval);
+      const success = await cancelOrderAndPayment(orderId);
+      if (success) {
+        toast.success("Đơn hàng đã bị hủy do quá thời gian thanh toán.");
+        setIsTimerModalOpen(false);
+        clearCart();
+        router.push("/employee/drinks");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (isPolling && orderId) {
+      const interval = setInterval(async () => {
+        try {
+          const paymentStatus = await getOrderPaymentByOrderId(orderId);
+          if (paymentStatus && paymentStatus.statusCode === 200) {
+            if (paymentStatus.data.status === "COMPLETED") {
+              setIsPolling(false);
+              clearInterval(interval);
+              if (timeoutId) clearTimeout(timeoutId);
+              setIsTimerModalOpen(false);
+              const responseCompleteOrder = await acceptPendingOrder(orderId);
+              if (responseCompleteOrder) {
+                toast.success("Đơn hàng đã được hoàn thành!");
+                clearCart();
+                setIsSuccessModalOpen(true);
+              } else {
+                throw new Error("Không thể hoàn thành đơn hàng");
+              }
+            }
+          } else {
+            throw new Error("Không thể kiểm tra trạng thái thanh toán");
+          }
+        } catch (error) {
+          console.error("Lỗi khi kiểm tra trạng thái:", error);
+          setIsPolling(false);
+          clearInterval(interval);
+          if (timeoutId) clearTimeout(timeoutId);
+          toast.error("Lỗi khi kiểm tra trạng thái thanh toán.");
+        }
+      }, 3000); // Poll every 3 seconds
+
+      setPollInterval(interval);
+
+      const timeout = setTimeout(() => {
+        setIsPolling(false);
+        clearInterval(interval);
+        onTimeout();
+      }, 300000); // 5 minutes
+
+      setTimeoutId(timeout);
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
+    }
+  }, [isPolling, orderId]);
 
   const isCashPayment =
     selectedPaymentMethodId === process.env.NEXT_PUBLIC_PAYMENT_METHOD_CASH;

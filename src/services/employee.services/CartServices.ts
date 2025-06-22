@@ -9,9 +9,13 @@ export type ApplyDiscountDto = {
   cartDetails: ItemApplyDiscountType[];
 };
 
-export const applyDiscountToCart = async (cartDetails: ApplyDiscountDto) => {
+export const applyDiscountToCart = async (
+  cartDetails: ApplyDiscountDto,
+  userId: string
+) => {
   try {
     const response = await axios.put("/discount/employee/apply-to-cart", {
+      userId: userId,
       cartDetails: cartDetails.cartDetails,
     });
 

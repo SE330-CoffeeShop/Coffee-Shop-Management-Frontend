@@ -48,7 +48,6 @@ import {
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 const Orders = () => {
-  const router = useRouter();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [filterCustomerName, setFilterCustomerName] = useState<string>("");
@@ -57,17 +56,13 @@ const Orders = () => {
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  const { auth } = useContext(AppContext) as AuthType;
-  const { id, branchId } = auth || {};
-
   const endpointOrders = useMemo(() => {
-    if (!branchId) return null;
     const params = new URLSearchParams({
       page: page.toString(),
       limit: rowsPerPage.toString(),
     });
-    return `/orders/branch/${branchId}/status/${selectedStatus}?${params.toString()}`;
-  }, [branchId, page, selectedStatus]);
+    return `/orders/branch/status/${selectedStatus}?${params.toString()}`;
+  }, [page, selectedStatus]);
 
   const {
     data: ordersData,
@@ -98,11 +93,10 @@ const Orders = () => {
       toast.error("Lỗi khi tải danh sách đơn hàng.");
     } else if (ordersData?.data) {
       let filteredOrders = ordersData.data;
-      console.log("filteredOrders: ", filteredOrders);
       if (filterCustomerName) {
         filteredOrders = filteredOrders.filter((order: OrderDto) =>
           order.userName
-            .toLowerCase()
+            ?.toLowerCase()
             .includes(filterCustomerName.toLowerCase())
         );
       }
@@ -174,11 +168,11 @@ const Orders = () => {
     try {
       const response = await cancelPendingOrder(orderId);
       if (response) {
-        toast.success("Đơn hàng đã được vận chuyển.");
+        toast.success("Đơn hàng đã được hủy.");
         mutateOrders();
       }
     } catch (error) {
-      toast.error("Lỗi khi đơn hàng vận chuyển.");
+      toast.error("Lỗi khi hủy đơn hàng.");
     }
   };
 
@@ -309,6 +303,8 @@ const Orders = () => {
     [page]
   );
 
+  const selectedOrder = orders.find((order) => order.id === selectedOrderId);
+
   return (
     <main className="flex w-full min-h-screen gap-4 bg-gray-50 p-6">
       <div className="flex h-full w-full gap-4">
@@ -422,6 +418,17 @@ const Orders = () => {
           {selectedOrderId ? (
             orderDetails.length > 0 ? (
               <div className="flex flex-col gap-4">
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Tên khách hàng: {selectedOrder?.userName || "Khách vãng lai"}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Số điện thoại: {selectedOrder?.userPhoneNumber || "N/A"}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Địa chỉ: {selectedOrder?.shippingAddressName || "Tại quầy"}
+                  </p>
+                </div>
                 {orderDetails.map((item, index) => (
                   <div key={index} className="border rounded-lg p-4 bg-gray-50">
                     <img

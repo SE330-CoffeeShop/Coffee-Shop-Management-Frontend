@@ -24,7 +24,7 @@ export default async function middleware(request: NextRequest) {
     } else {
       // Chuyển hướng thẳng đến trang mặc định
       const homePath =
-        token.role === "QUẢN LÝ" ? "/manager/dashboard" : "/employee/drinks";
+        token.role === "QUẢN LÝ" ? "/manager/drinks" : "/employee/drinks";
       return NextResponse.redirect(new URL(homePath, request.url));
     }
   }

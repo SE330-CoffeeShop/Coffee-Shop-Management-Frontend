@@ -1,10 +1,10 @@
 import React from "react";
 import { Card, CardBody } from "@heroui/react";
-import { DiscountDto } from "@/types/discount.type";
+import { DiscountListResponse } from "@/types/discount.type";
 import { formatNumberWithCommas } from "@/helpers";
 
 interface DiscountDetailDisplayProps {
-  discount: DiscountDto;
+  discount: DiscountListResponse;
 }
 
 const DiscountDetailDisplay: React.FC<DiscountDetailDisplayProps> = ({ discount }) => {
