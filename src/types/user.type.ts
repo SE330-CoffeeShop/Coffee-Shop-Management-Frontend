@@ -13,5 +13,16 @@ export type User = {
   role?: {
     id: number;
     name: string;
-  }
+  };
+};
+
+export type UserCreateDto = {
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  name: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  birthDate: string;
 };

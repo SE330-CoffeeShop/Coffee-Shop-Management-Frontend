@@ -14,3 +14,14 @@ export type EmployeeDto = {
   userEmail: string;
   userRole: string;
 }
+
+export type EmployeeCreateDto = {
+  email: string;
+  password: string;
+  passwordConfirm: string;
+  name: string;
+  lastName: string;
+  phoneNumber: string;
+  gender: string;
+  birthDate: string;
+};

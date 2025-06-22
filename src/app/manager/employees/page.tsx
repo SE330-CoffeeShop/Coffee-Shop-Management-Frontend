@@ -34,6 +34,10 @@ import EmployeeServices from "@/services/manager.services/EmployeeServices";
 import { columns } from "@/data/employee.data";
 import { EmployeeDto } from "@/types/employee.type";
 import EmployeeCardDisplay from "@/components/Card/EmployeeCardDisplay";
+import AddEmployeeModal from "@/app/manager/employees/AddEmployee.modal";
+import { AppContext } from "@/contexts";
+import { AuthType } from "@/types/auth.type";
+import { ButtonSolid } from "@/components";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -45,7 +49,11 @@ const Employees = () => {
     null
   );
   const [page, setPage] = useState(1);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const rowsPerPage = 10;
+
+  const { auth } = useContext(AppContext) as AuthType;
+  const { branchId } = auth || {};
 
   const endpointEmployees = useMemo(() => {
     const params = new URLSearchParams({
@@ -187,7 +195,7 @@ const Employees = () => {
                   isIconOnly
                   size="sm"
                   color="danger"
-                  onClick={() => handleDeleteEmployee(employee.id)}
+                  onClick={async () => handleDeleteEmployee(employee.id)}
                 >
                   <TrashIcon className="size-4" />
                 </Button>
@@ -223,6 +231,11 @@ const Employees = () => {
                   }
                   value={filterFullName}
                   onChange={handleSearchFullName}
+                />
+                <ButtonSolid
+                  content="Thêm nhân viên"
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="bg-primary-600 text-base-semibold text-secondary-100 rounded-lg hover:bg-primary-700"
                 />
               </div>
             </div>
@@ -302,6 +315,12 @@ const Employees = () => {
           )}
         </div>
       </div>
+      <AddEmployeeModal
+        isOpen={isAddModalOpen}
+        onOpenChange={() => setIsAddModalOpen(!isAddModalOpen)}
+        onClose={() => setIsAddModalOpen(false)}
+        onCreated={mutateEmployees}
+      />
     </main>
   );
 };
