@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { ProductType } from "@/types/product.type";
 import { ProductCategoryType } from "@/types/product.category.type";
 import axios from "@/lib/axiosInstance";
@@ -10,6 +10,7 @@ import ButtonSolid from "@/components/Button/ButtonSolid";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { useDisclosure } from "@heroui/react";
 import { Button } from "@heroui/react";
+import AddProductModal from "@/app/manager/drinks/AddProduct.modal";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -29,7 +30,7 @@ const debounce = <T extends (...args: any[]) => void>(
 };
 
 const Drinks = () => {
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -53,6 +54,7 @@ const Drinks = () => {
     data: productsData,
     error: productsError,
     isLoading: productsLoading,
+    mutate: mutateProducts,
   } = useSWR(endpointProducts, fetcher, {
     keepPreviousData: true,
     revalidateOnFocus: false,
@@ -192,6 +194,11 @@ const Drinks = () => {
           </div>
         )}
       </div>
+      <AddProductModal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        onClose={onClose}
+        onCreated={() => mutateProducts()}/>
     </main>
   );
 };

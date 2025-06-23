@@ -48,7 +48,7 @@ export type UpdateDiscountDto = {
   productVariantIds?: string[];
 };
 
-interface productsDiscountResponse {
+export type productsDiscountResponse = {
   id: string;
   name: string;
   thumb: string;

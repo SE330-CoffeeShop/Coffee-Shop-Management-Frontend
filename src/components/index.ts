@@ -11,6 +11,8 @@ import CartItemComponent from "@/components/CartItem/CartItem";
 import CartItemDisplay from "@/components/CartItem/CartItemDisplay";
 import PaymentMethodCard from "@/components/Card/PaymentMethdCard";
 import DiscountDetailDisplay from "@/components/Card/DiscountDetailDisplay";
+import CustomerCardDisplay from "@/components/Card/CustomerCardDisplay";
+import OrderProductDisplay from "@/components/Card/OrderProductDisplay";
 
 export {
   ButtonOutline,
@@ -26,4 +28,6 @@ export {
   CartItemDisplay,
   PaymentMethodCard,
   DiscountDetailDisplay,
+  CustomerCardDisplay,
+  OrderProductDisplay,
 };

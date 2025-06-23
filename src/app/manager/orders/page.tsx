@@ -31,6 +31,7 @@ import { toast } from "react-toastify";
 import { columns, statusOptions } from "@/data/order.data";
 import { OrderDetailDto, OrderDto } from "@/types/order.type";
 import { formatNumberWithCommas } from "@/helpers";
+import { OrderProductDisplay } from "@/components";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -307,30 +308,8 @@ const Orders = () => {
                     Địa chỉ: {selectedOrder?.shippingAddressName || "Tại quầy"}
                   </p>
                 </div>
-                {orderDetails.map((item, index) => (
-                  <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                    <img
-                      src={item.productThumb}
-                      alt={item.productName}
-                      className="w-20 h-20 object-cover rounded-md mb-2"
-                    />
-                    <p className="text-sm font-semibold text-gray-900">
-                      {item.productName}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Số lượng: {item.orderDetailQuantity}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      Giá:{" "}
-                      {formatNumberWithCommas(
-                        String(item.orderDetailUnitPrice)
-                      )}{" "}
-                      VNĐ
-                    </p>
-                    <p className="text-sm text-gray-600 capitalize">
-                      Kích thước: {item.variantTierId}
-                    </p>
-                  </div>
+                {orderDetails.map((item) => (
+                  <OrderProductDisplay key={item.id} item={item} />
                 ))}
               </div>
             ) : (

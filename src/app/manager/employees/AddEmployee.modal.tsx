@@ -65,27 +65,36 @@ const AddEmployeeModal = ({
 
   const validateInputs = () => {
     const newErrors = { ...errors };
-
-    newErrors.email = email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-      ? ""
-      : "Email không hợp lệ";
-    newErrors.password = password.trim() && password.length >= 8
-      ? ""
-      : "Mật khẩu phải có ít nhất 8 ký tự";
-    newErrors.passwordConfirm = passwordConfirm === password
-      ? ""
-      : "Mật khẩu xác nhận không khớp";
+  
+    newErrors.email =
+      email.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ? ""
+        : "Email không hợp lệ";
+  
+    newErrors.password =
+      password.trim() &&
+      /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/.test(password)
+        ? ""
+        : "Mật khẩu phải có ít nhất 8 ký tự, bao gồm 1 chữ hoa, 1 số và 1 ký tự đặc biệt";
+  
+    newErrors.passwordConfirm =
+      passwordConfirm === password ? "" : "Mật khẩu xác nhận không khớp";
+  
     newErrors.name = name.trim() ? "" : "Tên là bắt buộc";
     newErrors.lastName = lastName.trim() ? "" : "Họ là bắt buộc";
-    newErrors.phoneNumber = phoneNumber.trim() && /^\+?\d{10,15}$/.test(phoneNumber)
-      ? ""
-      : "Số điện thoại không hợp lệ";
+  
+    newErrors.phoneNumber =
+      phoneNumber.trim() && /^\+?\d{10,15}$/.test(phoneNumber)
+        ? ""
+        : "Số điện thoại không hợp lệ";
+  
     newErrors.gender = gender ? "" : "Giới tính là bắt buộc";
     newErrors.birthDate = birthDate ? "" : "Ngày sinh là bắt buộc";
-
+  
     setErrors(newErrors);
     return Object.values(newErrors).every((error) => error === "");
   };
+  
 
   const handleSubmit = async () => {
     if (validateInputs()) {
@@ -109,6 +118,7 @@ const AddEmployeeModal = ({
         }
       } catch (error: any) {
         toast.error("Tạo nhân viên thất bại. Vui lòng thử lại.");
+        toast.error(error?.response?.data?.message || "Lỗi không xác định");
       } finally {
         setIsSubmitting(false);
       }
@@ -146,7 +156,7 @@ const AddEmployeeModal = ({
 
   return (
     <Modal
-      size="lg"
+      size="4xl"
       isOpen={isOpen}
       radius="lg"
       onOpenChange={onOpenChange}
@@ -192,7 +202,10 @@ const AddEmployeeModal = ({
             {/* User Information */}
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="email-label" className="text-sm font-medium text-black">
+                <span
+                  id="email-label"
+                  className="text-sm font-medium text-black"
+                >
                   Email<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -210,7 +223,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="password-label" className="text-sm font-medium text-black">
+                <span
+                  id="password-label"
+                  className="text-sm font-medium text-black"
+                >
                   Mật khẩu<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -228,7 +244,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="password-confirm-label" className="text-sm font-medium text-black">
+                <span
+                  id="password-confirm-label"
+                  className="text-sm font-medium text-black"
+                >
                   Xác nhận mật khẩu<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -246,7 +265,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="name-label" className="text-sm font-medium text-black">
+                <span
+                  id="name-label"
+                  className="text-sm font-medium text-black"
+                >
                   Tên<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -264,7 +286,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="lastName-label" className="text-sm font-medium text-black">
+                <span
+                  id="lastName-label"
+                  className="text-sm font-medium text-black"
+                >
                   Họ<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -282,7 +307,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="phoneNumber-label" className="text-sm font-medium text-black">
+                <span
+                  id="phoneNumber-label"
+                  className="text-sm font-medium text-black"
+                >
                   Số điện thoại<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -300,7 +328,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="gender-label" className="text-sm font-medium text-black">
+                <span
+                  id="gender-label"
+                  className="text-sm font-medium text-black"
+                >
                   Giới tính<span className="text-error-600">*</span>
                 </span>
               </div>
@@ -312,11 +343,16 @@ const AddEmployeeModal = ({
                   onChange={(e) => setGender(e.target.value)}
                   aria-labelledby="gender-label"
                   popoverProps={{
-                    className: "bg-bg-white border-2 border-outline-var rounded-lg shadow-lg",
+                    className:
+                      "bg-bg-white border-2 border-outline-var rounded-lg shadow-lg",
                   }}
                 >
                   {genderOptions.map((option) => (
-                    <SelectItem key={option.key} textValue={option.label} className="bg-bg-white">
+                    <SelectItem
+                      key={option.key}
+                      textValue={option.label}
+                      className="bg-bg-white"
+                    >
                       {option.label}
                     </SelectItem>
                   ))}
@@ -327,7 +363,10 @@ const AddEmployeeModal = ({
 
             <div className="flex flex-row gap-4">
               <div className="basis-[30%]">
-                <span id="birthDate-label" className="text-sm font-medium text-black">
+                <span
+                  id="birthDate-label"
+                  className="text-sm font-medium text-black"
+                >
                   Ngày sinh<span className="text-error-600">*</span>
                 </span>
               </div>
