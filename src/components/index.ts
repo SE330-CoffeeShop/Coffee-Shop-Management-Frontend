@@ -13,6 +13,7 @@ import PaymentMethodCard from "@/components/Card/PaymentMethdCard";
 import DiscountDetailDisplay from "@/components/Card/DiscountDetailDisplay";
 import CustomerCardDisplay from "@/components/Card/CustomerCardDisplay";
 import OrderProductDisplay from "@/components/Card/OrderProductDisplay";
+import ShiftEmployeeDisplayCard from "@/components/Card/ShiftEmployeeDisplay";
 
 export {
   ButtonOutline,
@@ -30,4 +31,5 @@ export {
   DiscountDetailDisplay,
   CustomerCardDisplay,
   OrderProductDisplay,
+  ShiftEmployeeDisplayCard,
 };
