@@ -8,7 +8,7 @@ import {
 } from "@heroui/react";
 import { NotificationDto } from "@/types/notification.type";
 import { X, CheckCircle, Bell } from "lucide-react";
-import { format, toDate } from "date-fns-tz";
+import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
 interface NotificationDetailModalProps {
@@ -26,10 +26,7 @@ const NotificationDetailModal = ({
 }: NotificationDetailModalProps) => {
   if (!notification) return null;
 
-  // Parse the date string with the backend timezone
-  const date = toDate(notification.createdAt, { timeZone: 'Europe/Istanbul' });
-  // Format the date with the user's timezone
-  const formattedTime = format(date, "dd/MM/yyyy HH:mm", { timeZone: 'Asia/Ho_Chi_Minh', locale: vi });
+  const formattedTime = format(new Date(notification.createdAt), "dd/MM/yyyy HH:mm", { locale: vi });
 
   return (
     <Modal

@@ -1,32 +1,45 @@
 "use client";
 
 import {
-  Input,
-  Spinner,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
   Table,
   TableHeader,
   TableColumn,
   TableBody,
   TableRow,
   TableCell,
+  Spinner,
 } from "@heroui/react";
-import React, { Key, useCallback, useState } from "react";
-import { toast } from "react-toastify";
-import { mappingDayOfWeek, shiftDetailColumns } from "@/data/salary.data";
+import { shiftDetailColumns } from "@/data/salary.data";
+import { mappingDayOfWeek } from "@/data/salary.data";
 import { SalaryDetailResponse, ShiftDetail } from "@/types/salary.type";
 import useSWR from "swr";
+import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import axiosInstance from "@/lib/axiosInstance";
+import React, { Key, useCallback } from "react";
+
+interface SalaryDetailModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  salaryId: string | null;
+}
 
 const fetcher = (url: string) => axiosInstance.get(url).then((res) => res.data);
 
-const Salary: React.FC = () => {
-  const [month] = useState<string>((new Date().getMonth() + 1).toString().padStart(2, "0"));
-  const [year] = useState<string>(new Date().getFullYear().toString());
-
+const SalaryDetailModal: React.FC<SalaryDetailModalProps> = ({
+  isOpen,
+  onClose,
+  salaryId,
+}) => {
   const { data, error, isLoading } = useSWR<SalaryDetailResponse>(
-    `/salary/my/month/${month}/year/${year}`,
+    salaryId ? `/salary/detail/${salaryId}` : null,
     fetcher,
     { revalidateOnFocus: false }
   );
@@ -38,7 +51,7 @@ const Salary: React.FC = () => {
   const calculateTotalSalary = useCallback(() => {
     if (!data?.data?.shiftDetails) return 0;
     return data.data.shiftDetails.reduce((total, shift) => {
-      return total + (shift.totalShiftCheckins * shift.shiftSalary);
+      return total + shift.totalShiftCheckins * shift.shiftSalary;
     }, 0);
   }, [data]);
 
@@ -58,7 +71,8 @@ const Salary: React.FC = () => {
         case "daysOfWeek":
           return (
             <span className="text-sm text-gray-600">
-              {mappingDayOfWeek[cellValue as keyof typeof mappingDayOfWeek] || "Không xác định"}
+              {mappingDayOfWeek[cellValue as keyof typeof mappingDayOfWeek] ||
+                "Không xác định"}
             </span>
           );
         case "startTime":
@@ -84,32 +98,47 @@ const Salary: React.FC = () => {
   );
 
   return (
-    <main className="flex w-full min-h-screen bg-gray-50 p-6">
-      <div className="flex h-full w-full">
-        <div className="flex flex-col w-full gap-6 bg-white p-8 rounded-2xl shadow-lg">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-900">Chi tiết lương</h2>
-            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-              <Input
-                type="number"
-                value={month}
-                isReadOnly
-                placeholder="Tháng"
-                className="bg-white w-full sm:w-32 rounded-lg border-secondary-400 shadow-sm"
-                variant="bordered"
-                size="md"
+    <Modal
+      size="5xl"
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      isDismissable={false}
+      isKeyboardDismissDisabled={true}
+      scrollBehavior="outside"
+      classNames={{
+        body: "py-5 px-6 bg-white border-outline-var",
+        backdrop: "bg-[#292f46]/50 backdrop-opacity-40",
+        base: "border-outline-var bg-outline-var",
+        header: "border-b-[1px] border-border bg-white",
+        footer: "border-t-[1px] border-border bg-white",
+      }}
+    >
+      <ModalContent>
+        <ModalHeader className="w-full rounded-t-xl border">
+          <div className="border-b--b-primary h-11 w-11 content-center rounded-lg border-3">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="mx-auto size-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"
               />
-              <Input
-                type="number"
-                value={year}
-                isReadOnly
-                placeholder="Năm"
-                className="bg-white w-full sm:w-32 rounded-lg border-secondary-400 shadow-sm"
-                variant="bordered"
-                size="md"
-              />
+            </svg>
+          </div>
+          <div className="ml-5">
+            <div className="text-lg font-semibold">Chi tiết lương</div>
+            <div className="text-wrap text-sm font-normal">
+              Thông tin lương nhân viên
             </div>
           </div>
+        </ModalHeader>
+        <ModalBody>
           {isLoading ? (
             <Spinner className="mx-auto my-4" />
           ) : error || !data?.data ? (
@@ -118,7 +147,7 @@ const Salary: React.FC = () => {
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-4">
                 <div className="flex flex-row gap-2">
-                  <span className="basis-[30%] text-sm-semibold text-secondary-900">
+                  <span className="basis-[30%] text-sm font-semibold text-black">
                     ID Nhân viên
                   </span>
                   <span className="basis-[70%] text-sm text-gray-600">
@@ -126,7 +155,7 @@ const Salary: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex flex-row gap-2">
-                  <span className="basis-[30%] text-sm-semibold text-secondary-900">
+                  <span className="basis-[30%] text-sm font-semibold text-black">
                     Tên nhân viên
                   </span>
                   <span className="basis-[70%] text-sm text-gray-600">
@@ -134,7 +163,7 @@ const Salary: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex flex-row gap-2">
-                  <span className="basis-[30%] text-sm-semibold text-secondary-900">
+                  <span className="basis-[30%] text-sm font-semibold text-black">
                     Vị trí
                   </span>
                   <span className="basis-[70%] text-sm text-gray-600">
@@ -142,7 +171,7 @@ const Salary: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex flex-row gap-2">
-                  <span className="basis-[30%] text-sm-semibold text-secondary-900">
+                  <span className="basis-[30%] text-sm font-semibold text-black">
                     Tổng số check-in
                   </span>
                   <span className="basis-[70%] text-sm text-gray-600">
@@ -150,7 +179,7 @@ const Salary: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex flex-row gap-2">
-                  <span className="basis-[30%] text-sm-semibold text-secondary-900">
+                  <span className="basis-[30%] text-sm font-semibold text-black">
                     Tổng lương
                   </span>
                   <span className="basis-[70%] text-sm text-gray-600">
@@ -214,10 +243,18 @@ const Salary: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-      </div>
-    </main>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            onPress={onClose}
+            className="w-full rounded-lg border border-outline bg-white py-2 text-[16px] font-medium text-black hover:bg-gray-100"
+          >
+            Đóng
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 };
 
-export default Salary;
+export default SalaryDetailModal;

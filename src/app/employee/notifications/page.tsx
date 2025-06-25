@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Input,
   Pagination,
@@ -17,9 +18,9 @@ import React, { Key, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { columns, filterOptions } from "@/data/notification.data";
 import { NotificationDto } from "@/types/notification.type";
-import NotificationManagerServices from "@/services/manager.services/NotificationServices";
-import NotificationDetailModal from "@/app/manager/notifications/NotificationDetail.modal";
-import { format, toDate } from "date-fns-tz";
+import NotificationEmployeeServices from "@/services/employee.services/NotificationServices";
+import NotificationDetailModal from "@/app/employee/notifications/NotificationDetail.modal";
+import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
 const Notifications = () => {
@@ -31,7 +32,6 @@ const Notifications = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const rowsPerPage = 10;
 
-  // Fetch all notifications on mount
   useEffect(() => {
     const fetchAllNotifications = async () => {
       try {
@@ -40,7 +40,7 @@ const Notifications = () => {
         let totalPages = 1;
 
         while (page <= totalPages) {
-          const response = await NotificationManagerServices.getReceivedNotifications({
+          const response = await NotificationEmployeeServices.getReceivedNotifications({
             page,
             limit: 100,
           });
@@ -58,7 +58,6 @@ const Notifications = () => {
     fetchAllNotifications();
   }, []);
 
-  // Filter notifications by content and status
   const filteredNotifications = useMemo(() => {
     let result = allNotifications;
 
@@ -79,7 +78,6 @@ const Notifications = () => {
     return result;
   }, [allNotifications, filterContent, filterStatus]);
 
-  // Paginate filtered notifications
   const paginatedNotifications = useMemo(() => {
     const startIndex = (page - 1) * rowsPerPage;
     return filteredNotifications.slice(startIndex, startIndex + rowsPerPage);
@@ -105,7 +103,7 @@ const Notifications = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await NotificationManagerServices.patchReadNotification({
+      await NotificationEmployeeServices.patchReadNotification({
         notificationId,
       });
       setAllNotifications((prev) =>
@@ -134,13 +132,9 @@ const Notifications = () => {
             </span>
           );
         case "createdAt":
-          // Parse the date string with the backend timezone
-          const date = toDate(cellValue as string, { timeZone: 'Europe/Istanbul' });
-          // Format the date with the user's timezone
-          const formattedTime = format(date, "dd/MM/yyyy HH:mm", { timeZone: 'Asia/Ho_Chi_Minh', locale: vi });
           return (
             <span className="text-sm text-gray-600">
-              {formattedTime}
+              {format(new Date(cellValue as string), "dd/MM/yyyy HH:mm", { locale: vi })}
             </span>
           );
         case "read":
@@ -181,7 +175,6 @@ const Notifications = () => {
       <div className="flex h-full w-full gap-4">
         <div className="flex flex-col w-full">
           <div className="flex flex-col gap-6 bg-white p-8 rounded-2xl shadow-lg">
-            {/* Filters */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-xl font-bold text-gray-900">
                 Danh sách thông báo
@@ -200,7 +193,6 @@ const Notifications = () => {
                 />
               </div>
             </div>
-            {/* Status Filters */}
             <div className="flex flex-wrap gap-2">
               {filterOptions.map((option) => (
                 <Chip
@@ -218,7 +210,6 @@ const Notifications = () => {
                 </Chip>
               ))}
             </div>
-            {/* Table Rendering */}
             <div className="h-[500px] overflow-auto rounded-xl bg-white shadow-sm">
               <Table
                 aria-label="Bảng danh sách thông báo"
@@ -265,7 +256,6 @@ const Notifications = () => {
                 </TableBody>
               </Table>
             </div>
-            {/* Pagination */}
             {totalPages > 0 && (
               <div className="flex justify-center mt-4">
                 <Pagination

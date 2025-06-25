@@ -8,7 +8,7 @@ import {
 } from "@heroui/react";
 import { NotificationDto } from "@/types/notification.type";
 import { X, CheckCircle, Bell } from "lucide-react";
-import { format, toDate } from "date-fns-tz";
+import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 
 interface NotificationDetailModalProps {
@@ -26,10 +26,7 @@ const NotificationDetailModal = ({
 }: NotificationDetailModalProps) => {
   if (!notification) return null;
 
-  // Parse the date string with the backend timezone
-  const date = toDate(notification.createdAt, { timeZone: 'Europe/Istanbul' });
-  // Format the date with the user's timezone
-  const formattedTime = format(date, "dd/MM/yyyy HH:mm", { timeZone: 'Asia/Ho_Chi_Minh', locale: vi });
+  const formattedTime = format(new Date(notification.createdAt), "dd/MM/yyyy HH:mm", { locale: vi });
 
   return (
     <Modal
@@ -49,45 +46,45 @@ const NotificationDetailModal = ({
         <ModalBody className="p-6">
           <div className="grid grid-cols-2 gap-x-1 gap-y-4">
             <div className="flex items-center">
-              <strong className="text-sm-semibold text-secondary-500">
+              <strong className="text-sm-semibold text-secondary-600">
                 Loại:
               </strong>
             </div>
             <div className="flex items-center">
-              <span className="text-sm-regular text-secondary-500">
+              <span className="text-sm-regular text-secondary-600">
                 {notification.notificationType}
               </span>
             </div>
 
             <div className="flex items-center">
-              <strong className="text-sm-semibold text-secondary-500">
+              <strong className="text-sm-semibold text-secondary-600">
                 Nội dung:
               </strong>
             </div>
             <div className="flex items-center">
-              <span className="text-sm-regular text-secondary-500">
+              <span className="text-sm-regular text-secondary-600">
                 {notification.notificationContent}
               </span>
             </div>
 
             <div className="flex items-center">
-              <strong className="text-sm-semibold text-secondary-500">
+              <strong className="text-sm-semibold text-secondary-600">
                 Ngày tạo:
               </strong>
             </div>
             <div className="flex items-center">
-              <span className="text-sm-regular text-secondary-500">
+              <span className="text-sm-regular text-secondary-600">
                 {formattedTime}
               </span>
             </div>
 
             <div className="flex items-center">
-              <strong className="text-sm-semibold text-secondary-500">
+              <strong className="text-sm-semibold text-secondary-600">
                 Trạng thái:
               </strong>
             </div>
             <div className="flex items-center">
-              <span className="text-sm-regular text-secondary-500">
+              <span className="text-sm-regular text-secondary-600">
                 {notification.read ? "Đã đọc" : "Chưa đọc"}
               </span>
             </div>

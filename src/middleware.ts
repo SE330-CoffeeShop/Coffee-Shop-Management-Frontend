@@ -11,7 +11,11 @@ export default async function middleware(request: NextRequest) {
     if (token) {
       // Chuyển hướng thẳng đến trang mặc định của role
       const redirectPath =
-        token.role === "QUẢN LÝ" ? "/manager/drinks" : "/employee/drinks";
+        token.role === "QUẢN TRỊ VIÊN"
+          ? "/admin/drinks"
+          : token.role === "QUẢN LÝ"
+          ? "/manager/drinks"
+          : "/employee/drinks";
       return NextResponse.redirect(new URL(redirectPath, request.url));
     }
     return NextResponse.next();
@@ -24,7 +28,11 @@ export default async function middleware(request: NextRequest) {
     } else {
       // Chuyển hướng thẳng đến trang mặc định
       const homePath =
-        token.role === "QUẢN LÝ" ? "/manager/drinks" : "/employee/drinks";
+        token.role === "QUẢN TRỊ VIÊN"
+          ? "/admin/drinks"
+          : token.role === "QUẢN LÝ"
+          ? "/manager/drinks"
+          : "/employee/drinks";
       return NextResponse.redirect(new URL(homePath, request.url));
     }
   }
@@ -45,28 +53,30 @@ export default async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/manager/dashboard", request.url));
   }
 
+  if (pathname === "/admin") {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  }
+
+  // 5. Kiểm tra phân quyền và chuyển hướng URL sai
   // 5. Kiểm tra phân quyền và chuyển hướng URL sai
   if (role === "NHÂN VIÊN") {
-    // Chuyển hướng tất cả /manager* về trang nhân viên
-    if (pathname.startsWith("/manager")) {
-      return NextResponse.redirect(new URL("/employee/drinks", request.url));
-    }
-
-    // Chuyển hướng /employee về trang drinks (nếu cần)
-    if (pathname === "/employee") {
+    // Chuyển hướng tất cả /manager* và /admin* về trang nhân viên
+    if (pathname.startsWith("/manager") || pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/employee/drinks", request.url));
     }
   }
 
   if (role === "QUẢN LÝ") {
-    // Chuyển hướng tất cả /employee* về trang quản lý
-    if (pathname.startsWith("/employee")) {
+    // Chuyển hướng tất cả /employee* và /admin* về trang quản lý
+    if (pathname.startsWith("/employee") || pathname.startsWith("/admin")) {
       return NextResponse.redirect(new URL("/manager/drinks", request.url));
     }
+  }
 
-    // Chuyển hướng /manager về trang dashboard (nếu cần)
-    if (pathname === "/manager") {
-      return NextResponse.redirect(new URL("/manager/drinks", request.url));
+  if (role === "QUẢN TRỊ VIÊN") {
+    // Chuyển hướng tất cả /employee* và /manager* về trang admin
+    if (pathname.startsWith("/employee") || pathname.startsWith("/manager")) {
+      return NextResponse.redirect(new URL("/admin/drinks", request.url));
     }
   }
 
@@ -80,6 +90,8 @@ export const config = {
     "/manager/:path*",
     "/employee",
     "/employee/:path*",
+    "/admin",
+    "/admin/:path*",
     "/auth/signIn",
   ],
 };
