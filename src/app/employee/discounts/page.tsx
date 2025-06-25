@@ -19,7 +19,7 @@ import useSWR from "swr";
 import axios from "@/lib/axiosInstance";
 import { toast } from "react-toastify";
 import { columns, statusOptions } from "@/data/discount.data";
-import { DiscountDto } from "@/types/discount.type";
+import { DiscountDto, DiscountListResponse } from "@/types/discount.type";
 import { AppContext } from "@/contexts";
 import { AuthType } from "@/types/auth.type";
 import { DiscountDetailDisplay } from "@/components";
@@ -27,7 +27,7 @@ import { DiscountDetailDisplay } from "@/components";
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 const Discounts = () => {
-  const [discounts, setDiscounts] = useState<DiscountDto[]>([]);
+  const [discounts, setDiscounts] = useState<DiscountListResponse[]>([]);
   const [totalDiscounts, setTotalDiscounts] = useState<number>(0);
   const [filterDiscountName, setFilterDiscountName] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("ALL");
@@ -105,8 +105,8 @@ const Discounts = () => {
   const selectedDiscount = discounts.find((d) => d.id === selectedDiscountId);
 
   const renderCell = useCallback(
-    (discount: DiscountDto, columnKey: Key, index: number): React.ReactNode => {
-      const cellValue = discount[columnKey as keyof DiscountDto];
+    (discount: DiscountListResponse, columnKey: Key, index: number): React.ReactNode => {
+      const cellValue = discount[columnKey as keyof DiscountListResponse];
 
       switch (columnKey) {
         case "index":
@@ -116,11 +116,41 @@ const Discounts = () => {
             </span>
           );
         case "discountName":
-          return <span className="text-sm text-gray-900">{cellValue}</span>;
+          return (
+            <span className="text-sm text-gray-900">
+              {Array.isArray(cellValue)
+                ? cellValue.map((item, idx) => (
+                    <span key={idx} className="block">
+                      {JSON.stringify(item)}
+                    </span>
+                  ))
+                : cellValue}
+            </span>
+          );
         case "discountDescription":
-          return <span className="text-sm text-gray-600">{cellValue}</span>;
+          return (
+            <span className="text-sm text-gray-600">
+              {Array.isArray(cellValue)
+                ? cellValue.map((item, idx) => (
+                    <span key={idx} className="block">
+                      {JSON.stringify(item)}
+                    </span>
+                  ))
+                : cellValue}
+            </span>
+          );
         case "discountMaxUsers":
-          return <span className="text-sm text-gray-900">{cellValue}</span>;
+          return (
+            <span className="text-sm text-gray-900">
+              {Array.isArray(cellValue)
+                ? cellValue.map((item, idx) => (
+                    <span key={idx} className="block">
+                      {JSON.stringify(item)}
+                    </span>
+                  ))
+                : cellValue}
+            </span>
+          );
         case "discountStartDate":
           return (
             <span className="text-sm text-gray-600">
@@ -143,7 +173,7 @@ const Discounts = () => {
           );
         case "actions":
           return (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center gap-2">
               <Tooltip
                 content="Xem chi tiết"
                 className="bg-primary-700 text-white px-2 py-1 rounded-md text-xs"
@@ -237,7 +267,7 @@ const Discounts = () => {
                   loadingContent={<Spinner className="mx-auto my-4" />}
                   loadingState={loadingState}
                 >
-                  {(item: DiscountDto) => (
+                  {(item: DiscountListResponse) => (
                     <TableRow
                       key={item.id}
                       className="hover:bg-gray-50 transition-colors"

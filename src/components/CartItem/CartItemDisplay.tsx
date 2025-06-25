@@ -8,7 +8,7 @@ interface CartItemDisplayProps {
 
 const CartItemDisplay = ({ item }: CartItemDisplayProps) => {
   return (
-    <div className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+    <div className="flex gap-4 p-4 bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 mb-2">
       {/* Product Image */}
       <div className="flex-shrink-0">
         <img

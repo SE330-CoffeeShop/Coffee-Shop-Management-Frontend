@@ -1,13 +1,13 @@
 import { ProductType } from "@/types/product.type";
 
 export type CartItem = {
-  id: string;
+  id: string; // ID của sản phẩm trong giỏ hàng
   productName: string;
   productThumb: string;
   productPrice: number;
   productCategoryId: string;
   quantity: number;
-  productVariant: string;
+  productVariant: string; // ID của product variant
   productVariantTierIdx: string;
 };
 

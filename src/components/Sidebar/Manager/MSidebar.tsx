@@ -3,11 +3,11 @@
 import { Fragment, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { classNames } from "@/components/className";
-import { ENavItems } from "@/components/Sidebar/Employee/ENavItems";
 import SidebarItem from "@/components/Sidebar/SidebarItem";
+import { MNavItems } from "@/components/Sidebar/Manager/MNavItems";
 
-const ESidebar = () => {
-  const navItems = ENavItems();
+const MSidebar = () => {
+  const navItems = MNavItems();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
 
   const toggleSidebar = () => {
@@ -75,7 +75,7 @@ const ESidebar = () => {
             </div>
           </div>
           <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
-          {/* Discount */}
+          {/* Khuyến mãi */}
           {isSidebarExpanded && (
             <span className="text-lg-semibold text-primary-0">Khuyến mãi</span>
           )}
@@ -101,14 +101,14 @@ const ESidebar = () => {
             </div>
           </div>
           <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
-          {/* Shifts */}
+          {/* Nhân viên */}
           {isSidebarExpanded && (
-            <span className="text-lg-semibold text-primary-0">Lịch hàm việc</span>
+            <span className="text-lg-semibold text-primary-0">Nhân viên</span>
           )}
           <div className="relative mt-3 pb-2">
             <div className="flex flex-col space-y-1">
               {navItems.map((item, idx) => {
-                if (item.group === "shifts") {
+                if (item.group === "employees") {
                   return (
                     <Fragment key={idx}>
                       <div className="space-y-1">
@@ -127,7 +127,33 @@ const ESidebar = () => {
             </div>
           </div>
           <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
-          {/* Notifications */}
+          {/* Khách hàng */}
+          {isSidebarExpanded && (
+            <span className="text-lg-semibold text-primary-0">Khách hàng</span>
+          )}
+          <div className="relative mt-3 pb-2">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item, idx) => {
+                if (item.group === "customers") {
+                  return (
+                    <Fragment key={idx}>
+                      <div className="space-y-1">
+                        <SidebarItem
+                          label={item.name}
+                          icon={item.icon}
+                          path={item.href}
+                          active={item.active}
+                          isSidebarExpanded={isSidebarExpanded}
+                        />
+                      </div>
+                    </Fragment>
+                  );
+                }
+              })}
+            </div>
+          </div>
+          <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
+          {/* Thông báo */}
           {isSidebarExpanded && (
             <span className="text-lg-semibold text-primary-0">Thông báo</span>
           )}
@@ -135,6 +161,58 @@ const ESidebar = () => {
             <div className="flex flex-col space-y-1">
               {navItems.map((item, idx) => {
                 if (item.group === "notifications") {
+                  return (
+                    <Fragment key={idx}>
+                      <div className="space-y-1">
+                        <SidebarItem
+                          label={item.name}
+                          icon={item.icon}
+                          path={item.href}
+                          active={item.active}
+                          isSidebarExpanded={isSidebarExpanded}
+                        />
+                      </div>
+                    </Fragment>
+                  );
+                }
+              })}
+            </div>
+          </div>
+          <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
+          {/* Kho hàng */}
+          {isSidebarExpanded && (
+            <span className="text-lg-semibold text-primary-0">Kho hàng</span>
+          )}
+          <div className="relative mt-3 pb-2">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item, idx) => {
+                if (item.group === "warehouses") {
+                  return (
+                    <Fragment key={idx}>
+                      <div className="space-y-1">
+                        <SidebarItem
+                          label={item.name}
+                          icon={item.icon}
+                          path={item.href}
+                          active={item.active}
+                          isSidebarExpanded={isSidebarExpanded}
+                        />
+                      </div>
+                    </Fragment>
+                  );
+                }
+              })}
+            </div>
+          </div>
+          <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
+          {/* Report */}
+          {isSidebarExpanded && (
+            <span className="text-lg-semibold text-primary-0">Báo cáo</span>
+          )}
+          <div className="relative mt-3 pb-2">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item, idx) => {
+                if (item.group === "reports") {
                   return (
                     <Fragment key={idx}>
                       <div className="space-y-1">
@@ -171,4 +249,4 @@ const ESidebar = () => {
   );
 };
 
-export default ESidebar;
+export default MSidebar;

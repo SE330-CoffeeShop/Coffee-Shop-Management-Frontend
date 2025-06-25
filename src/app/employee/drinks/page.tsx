@@ -16,6 +16,8 @@ import { CartContextType, CartItem } from "@/types/cart.type";
 import { applyDiscountToCart } from "@/services/employee.services/CartServices";
 import CartItemComponent from "@/components/CartItem/CartItem";
 import { useRouter } from "next/navigation";
+import { AppContext } from "@/contexts";
+import { AuthType } from "@/types/auth.type";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -37,9 +39,17 @@ const debounce = <T extends (...args: any[]) => void>(
 const Drinks = () => {
   const router = useRouter();
 
-  const { cartItems, removeFromCart, updateQuantity, totalPrice, discount, setDiscount, tax, finalTotal } = useContext(
-    CartContext
-  ) as CartContextType;
+  const {
+    cartItems,
+    removeFromCart,
+    updateQuantity,
+    totalPrice,
+    discount,
+    setDiscount,
+    tax,
+    finalTotal,
+  } = useContext(CartContext) as CartContextType;
+  const { auth } = useContext(AppContext) as AuthType;
 
   //! CONTROL Add Product To Cart modal
   const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
@@ -189,19 +199,18 @@ const Drinks = () => {
         cartDetailQuantity: item.quantity,
       }));
 
-      console.log("cartDetails: ", cartDetails);
-
       const cartDetailsProps = {
         cartDetails: cartDetails,
       };
 
-      const discountAmount = await applyDiscountToCart(cartDetailsProps);
+      console.log("Applying discount with cart details:", cartDetailsProps);
+      console.log("User ID for discount:", auth.id);
+
+      const discountAmount = await applyDiscountToCart(cartDetailsProps, auth.id);
 
       setDiscount(discountAmount);
       toast.success(
-        `Áp dụng khuyến mãi thành công: ${discountAmount.toLocaleString(
-          "vi-VN"
-        )} VNĐ`
+        `Áp dụng khuyến mãi thành công: ${discount.toLocaleString("vi-VN")} VNĐ`
       );
     } catch (error: any) {
       console.error("Discount API error:", error);
@@ -321,9 +330,7 @@ const Drinks = () => {
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-secondary-900">
-                    Thuế (10%):
-                  </span>
+                  <span className="text-sm text-secondary-900">Thuế (5%):</span>
                   <span className="text-sm text-secondary-900">
                     {tax.toLocaleString("vi-VN")} VNĐ
                   </span>

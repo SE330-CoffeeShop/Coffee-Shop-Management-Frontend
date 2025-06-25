@@ -12,57 +12,66 @@ import {
   TableHeader,
   TableRow,
   Tooltip,
+  Button,
 } from "@heroui/react";
-import { EyeIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useRouter } from "next/navigation";
-import React, { Key, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  EyeIcon,
+  MagnifyingGlassIcon,
+  CheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import React, {
+  Key,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import useSWR from "swr";
 import axios from "@/lib/axiosInstance";
 import { toast } from "react-toastify";
 import { columns, statusOptions } from "@/data/order.data";
-import { OrderDetailDto, OrderDto, statusColorMap, statusDisplayMap } from "@/types/order.type";
-import { CartItemDisplay } from "@/components";
+import { OrderDetailDto, OrderDto } from "@/types/order.type";
 import { formatNumberWithCommas } from "@/helpers";
-import { AppContext } from "@/contexts";
-import { AuthType } from "@/types/auth.type";
+import {
+  cancelPendingOrder,
+  completeOrder,
+  deliveredOrder,
+  deliveringOrder,
+} from "@/services/employee.services/OrderServices";
+import { OrderProductDisplay } from "@/components";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
 const Orders = () => {
-  const router = useRouter();
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [totalOrders, setTotalOrders] = useState<number>(0);
   const [filterCustomerName, setFilterCustomerName] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("PROCESSING");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const rowsPerPage = 10;
 
-  const { auth } = useContext(AppContext) as AuthType;
-  const { id, branchId } = auth || {};
-
   const endpointOrders = useMemo(() => {
-    if (!branchId) return null;
     const params = new URLSearchParams({
       page: page.toString(),
       limit: rowsPerPage.toString(),
     });
-    if (filterCustomerName) params.append("customerName", filterCustomerName);
-    const status = selectedStatus || "PROCESSING";
-    return `/orders/branch/${branchId}/status/${status}?${params.toString()}`;
-  }, [branchId, page, filterCustomerName, selectedStatus]);
+    return `/orders/branch/status/${selectedStatus}?${params.toString()}`;
+  }, [page, selectedStatus]);
 
   const {
     data: ordersData,
     error: ordersError,
     isLoading: ordersLoading,
+    mutate: mutateOrders,
   } = useSWR(endpointOrders, fetcher, {
     keepPreviousData: true,
     revalidateOnFocus: false,
   });
 
   const endpointOrderDetails = selectedOrderId
-    ? `/order-details/${selectedOrderId}`
+    ? `/order-details/by-order/${selectedOrderId}`
     : null;
 
   const { data: orderDetailsData, error: orderDetailsError } = useSWR(
@@ -79,10 +88,18 @@ const Orders = () => {
       setTotalOrders(0);
       toast.error("Lỗi khi tải danh sách đơn hàng.");
     } else if (ordersData?.data) {
-      setOrders(ordersData.data);
+      let filteredOrders = ordersData.data;
+      if (filterCustomerName) {
+        filteredOrders = filteredOrders.filter((order: OrderDto) =>
+          order.userName
+            ?.toLowerCase()
+            .includes(filterCustomerName.toLowerCase())
+        );
+      }
+      setOrders(filteredOrders);
       setTotalOrders(ordersData.paging?.total || 0);
     }
-  }, [ordersData, ordersError]);
+  }, [ordersData, ordersError, filterCustomerName]);
 
   useEffect(() => {
     if (orderDetailsError) {
@@ -98,13 +115,61 @@ const Orders = () => {
     ordersLoading || orders.length === 0 ? "loading" : "idle";
 
   const handleFilterStatus = (status: string) => {
-    setSelectedStatus(status === selectedStatus ? null : status);
+    setSelectedStatus(status);
     setPage(1);
   };
 
   const handleSearchCustomer = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterCustomerName(e.target.value);
     setPage(1);
+  };
+
+  const handleCompleteOrder = async (orderId: string) => {
+    try {
+      const response = await completeOrder(orderId);
+      if (response) {
+        toast.success("Đơn hàng đã được làm xong.");
+        mutateOrders();
+      }
+    } catch (error) {
+      toast.error("Lỗi khi làm xong đơn hàng.");
+    }
+  };
+
+  const handleDeliveringOrder = async (orderId: string) => {
+    try {
+      const response = await deliveringOrder(orderId);
+      if (response) {
+        toast.success("Đơn hàng đã được vận chuyển.");
+        mutateOrders();
+      }
+    } catch (error) {
+      toast.error("Lỗi khi đơn hàng vận chuyển.");
+    }
+  };
+
+  const handleDeliveredOrder = async (orderId: string) => {
+    try {
+      const response = await deliveredOrder(orderId);
+      if (response) {
+        toast.success("Đơn hàng đã được vận chuyển.");
+        mutateOrders();
+      }
+    } catch (error) {
+      toast.error("Lỗi khi đơn hàng vận chuyển.");
+    }
+  };
+
+  const handleRejectOrder = async (orderId: string) => {
+    try {
+      const response = await cancelPendingOrder(orderId);
+      if (response) {
+        toast.success("Đơn hàng đã được hủy.");
+        mutateOrders();
+      }
+    } catch (error) {
+      toast.error("Lỗi khi hủy đơn hàng.");
+    }
   };
 
   const renderCell = useCallback(
@@ -121,10 +186,16 @@ const Orders = () => {
         case "orderId":
           return <span className="text-sm text-gray-900">{order.id}</span>;
         case "employeeName":
-          return <span className="text-sm text-gray-600">{order.employeeName || "N/A"}</span>;
-        case "customerName":
           return (
-            <span className="text-sm text-gray-900">{cellValue || "Khách vãng lai"}</span>
+            <span className="text-sm text-gray-600">
+              {order.employeeName || "N/A"}
+            </span>
+          );
+        case "userName":
+          return (
+            <span className="text-sm text-gray-900">
+              {cellValue || "Khách vãng lai"}
+            </span>
           );
         case "createdAt":
           return (
@@ -138,12 +209,15 @@ const Orders = () => {
         case "totalAmount":
           return (
             <span className="text-sm font-semibold text-primary-700">
-              {formatNumberWithCommas(String(order.orderTotalCostAfterDiscount))} VNĐ
+              {formatNumberWithCommas(
+                String(order.orderTotalCostAfterDiscount)
+              )}{" "}
+              VNĐ
             </span>
           );
         case "actions":
           return (
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center gap-2">
               <Tooltip
                 content="Xem chi tiết"
                 className="bg-primary-700 text-white px-2 py-1 rounded-md text-xs"
@@ -155,6 +229,67 @@ const Orders = () => {
                   <EyeIcon className="size-5" />
                 </span>
               </Tooltip>
+              {order.orderStatus === "ĐANG XỬ LÝ" && (
+                <Tooltip
+                  content="Hoàn thành"
+                  className="bg-green-600 text-white px-2 py-1 rounded-md text-xs"
+                >
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    color="success"
+                    onClick={() => handleCompleteOrder(order.id)}
+                  >
+                    <CheckIcon className="size-4" />
+                  </Button>
+                </Tooltip>
+              )}
+              {order.orderStatus === "HOÀN TẤT" && (
+                <Tooltip
+                  content="Vận chuyển"
+                  className="bg-green-600 text-white px-2 py-1 rounded-md text-xs"
+                >
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    color="success"
+                    onClick={() => handleDeliveringOrder(order.id)}
+                  >
+                    <CheckIcon className="size-4" />
+                  </Button>
+                </Tooltip>
+              )}
+              {order.orderStatus === "ĐANG GIAO HÀNG" && (
+                <>
+                  <Tooltip
+                    content="Vận chuyển hoàn tất"
+                    className="bg-green-600 text-white px-2 py-1 rounded-md text-xs"
+                  >
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      color="success"
+                      onClick={() => handleDeliveredOrder(order.id)}
+                    >
+                      <CheckIcon className="size-4" />
+                    </Button>
+                  </Tooltip>
+
+                  <Tooltip
+                    content="Giao hàng thất bại"
+                    className="bg-red-600 text-white px-2 py-1 rounded-md text-xs"
+                  >
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      color="danger"
+                      onClick={async () => handleRejectOrder(order.id)}
+                    >
+                      <XMarkIcon className="size-4" />
+                    </Button>
+                  </Tooltip>
+                </>
+              )}
             </div>
           );
         default:
@@ -163,6 +298,8 @@ const Orders = () => {
     },
     [page]
   );
+
+  const selectedOrder = orders.find((order) => order.id === selectedOrderId);
 
   return (
     <main className="flex w-full min-h-screen gap-4 bg-gray-50 p-6">
@@ -277,24 +414,25 @@ const Orders = () => {
           {selectedOrderId ? (
             orderDetails.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {orderDetails.map((item, index) => (
-                  <CartItemDisplay
-                    key={index}
-                    item={{
-                      id: index.toString(),
-                      productName: item.productName,
-                      productThumb: "/images/placeholder.png",
-                      productPrice: item.price,
-                      productCategoryId: "",
-                      quantity: item.quantity,
-                      productVariant: "",
-                      productVariantTierIdx: "",
-                    }}
-                  />
+                <div>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Tên khách hàng: {selectedOrder?.userName || "Khách vãng lai"}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Số điện thoại: {selectedOrder?.userPhoneNumber || "N/A"}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Địa chỉ: {selectedOrder?.shippingAddressName || "Tại quầy"}
+                  </p>
+                </div>
+                {orderDetails.map((item) => (
+                  <OrderProductDisplay key={item.id} item={item} />
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">Không có chi tiết đơn hàng.</p>
+              <p className="text-gray-500 text-sm">
+                Không có chi tiết đơn hàng.
+              </p>
             )
           ) : (
             <p className="text-gray-500 text-sm flex-grow">

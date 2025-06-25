@@ -26,7 +26,7 @@ const mapProductToItemCart = (
 const CartProviders = ({ children }: { children: React.ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [discount, setDiscount] = useState<number>(0);
-  const taxRate = 0.1; // 10% fixed tax
+  const taxRate = 0.05; // 5% fixed tax
 
   const totalPrice = cartItems.reduce(
     (total, item) => total + item.productPrice * item.quantity,
