@@ -1,9 +1,9 @@
 'use client'
 
-const Warehouses = () => {
+const Notifications = () => {
   return (<div>
-    Coffee Shop Management 
+    Notifications screens
   </div>)
 }
 
-export default Warehouses;
+export default Notifications;
