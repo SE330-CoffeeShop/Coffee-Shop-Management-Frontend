@@ -8,3 +8,8 @@ export const columns = [
   { name: "Ngày tuyển", uid: "employeeHireDate", sortable: true },
   { name: "Hành động", uid: "actions", sortable: false },
 ];
+
+export const statusAdminOptions = [
+  { name: "Quản lý", uid: "QUẢN LÝ" },
+  { name: "Nhân viên", uid: "NHÂN VIÊN" },
+];

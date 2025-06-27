@@ -32,39 +32,6 @@ export const ANavItems = () => {
       group: "employees",
     },
     {
-      name: "Lịch làm việc",
-      href: "/admin/shifts",
-      icon: isNavItemActive(pathname, "/admin/shifts") ? (
-        <RiCalendarLine className="size-6 text-primary-700 text-sm-semibold" />
-      ) : (
-        <RiCalendarLine className="size-6 text-primary-0 text-sm-semibold" />
-      ),
-      active: isNavItemActive(pathname, "/admin/shifts"),
-      group: "employees",
-    },
-    {
-      name: "Chấm công",
-      href: "/admin/checkin",
-      icon: isNavItemActive(pathname, "/admin/checkin") ? (
-        <RiCalendarCheckLine className="size-6 text-primary-700 text-sm-semibold" />
-      ) : (
-        <RiCalendarCheckLine className="size-6 text-primary-0 text-sm-semibold" />
-      ),
-      active: isNavItemActive(pathname, "/admin/checkin"),
-      group: "employees",
-    },
-    {
-      name: "Lương",
-      href: "/admin/salary",
-      icon: isNavItemActive(pathname, "/admin/salary") ? (
-        <RiMoneyDollarBoxLine className="size-6 text-primary-700 text-sm-semibold" />
-      ) : (
-        <RiMoneyDollarBoxLine className="size-6 text-primary-0 text-sm-semibold" />
-      ),
-      active: isNavItemActive(pathname, "/admin/salary"),
-      group: "employees",
-    },
-    {
       name: "Danh sách thức uống",
       href: "/admin/drinks",
       icon: isNavItemActive(pathname, "/admin/drinks") ? (
@@ -74,6 +41,17 @@ export const ANavItems = () => {
       ),
       active: isNavItemActive(pathname, "/admin/drinks"),
       group: "drinks",
+    },
+    {
+      name: "Danh sách chi nhánh",
+      href: "/admin/branches",
+      icon: isNavItemActive(pathname, "/admin/branches") ? (
+        <RiDrinksLine className="size-6 text-primary-700 text-sm-semibold" />
+      ) : (
+        <RiDrinksLine className="size-6 text-primary-0 text-sm-semibold" />
+      ),
+      active: isNavItemActive(pathname, "/admin/branches"),
+      group: "branches",
     },
     {
       name: "Đơn hàng",
@@ -97,17 +75,17 @@ export const ANavItems = () => {
       active: isNavItemActive(pathname, "/admin/discounts"),
       group: "discounts",
     },
-    // {
-    //   name: "Nhà kho",
-    //   href: "/employee/warehouses",
-    //   icon: isNavItemActive(pathname, "/employee/warehouses") ? (
-    //     <MdOutlineWarehouse className="size-6 text-primary-700 text-sm-semibold" />
-    //   ) : (
-    //     <MdOutlineWarehouse className="size-6 text-primary-0 text-sm-semibold" />
-    //   ),
-    //   active: isNavItemActive(pathname, "/employee/warehouses"),
-    //   group: "warehouses",
-    // },
+    {
+      name: "Nhà kho",
+      href: "/employee/warehouses",
+      icon: isNavItemActive(pathname, "/employee/warehouses") ? (
+        <MdOutlineWarehouse className="size-6 text-primary-700 text-sm-semibold" />
+      ) : (
+        <MdOutlineWarehouse className="size-6 text-primary-0 text-sm-semibold" />
+      ),
+      active: isNavItemActive(pathname, "/employee/warehouses"),
+      group: "warehouses",
+    },
     {
       name: "Thông báo",
       href: "/admin/notifications",
@@ -118,6 +96,17 @@ export const ANavItems = () => {
       ),
       active: isNavItemActive(pathname, "/admin/notifications"),
       group: "notifications",
+    },
+    {
+      name: "Thống kê",
+      href: "/admin/reports",
+      icon: isNavItemActive(pathname, "/admin/reports") ? (
+        <BellAlertIcon className="size-6 text-primary-700 text-sm-semibold" />
+      ) : (
+        <BellAlertIcon className="size-6 text-primary-0 text-sm-semibold" />
+      ),
+      active: isNavItemActive(pathname, "/admin/reports"),
+      group: "reports",
     },
   ];
 };

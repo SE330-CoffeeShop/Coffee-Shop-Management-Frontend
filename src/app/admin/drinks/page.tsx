@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import useSWR, { mutate } from "swr";
 import { ProductType } from "@/types/product.type";
 import { ProductCategoryType } from "@/types/product.category.type";
 import axios from "@/lib/axiosInstance";
-import { ProductCard, SearchBar } from "@/components";
-import ButtonSolid from "@/components/Button/ButtonSolid";
+import { SearchBar, ButtonSolid } from "@/components";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
 import { useDisclosure } from "@heroui/react";
 import { Button } from "@heroui/react";
 import AddProductModal from "@/app/admin/drinks/AddProduct.modal";
+import ProductDetailModal from "@/app/admin/drinks/DetailProduct.modal";
+import ProductAdminCard from "@/components/Card/ProductAdminCard";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -30,15 +31,15 @@ const debounce = <T extends (...args: any[]) => void>(
 };
 
 const Drinks = () => {
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
+  const { isOpen: isAddModalOpen, onOpen: onAddModalOpen, onOpenChange: onAddModalOpenChange, onClose: onAddModalClose } = useDisclosure();
+  const { isOpen: isDetailModalOpen, onOpen: onDetailModalOpen, onOpenChange: onDetailModalOpenChange, onClose: onDetailModalClose } = useDisclosure();
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
-  const [productCategories, setProductCategories] = useState<
-    ProductCategoryType[]
-  >([]);
+  const [productCategories, setProductCategories] = useState<ProductCategoryType[]>([]);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
 
   const rowsPerPage = 12;
   const endpointProductCategories = `/product-category/all?page=1&limit=100`;
@@ -114,6 +115,16 @@ const Drinks = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const handleOpenDetailModal = (product: ProductType) => {
+    setSelectedProduct(product);
+    onDetailModalOpen();
+  };
+
+  const handleCloseDetailModal = () => {
+    setSelectedProduct(null);
+    onDetailModalClose();
+  };
+
   const totalPages = Math.ceil(totalProducts / rowsPerPage);
 
   return (
@@ -139,9 +150,9 @@ const Drinks = () => {
             </select>
             <SearchBar onSearch={handleSearch} />
             <ButtonSolid
-              content="Thêm vào giỏ hàng"
+              content="Thêm sản phẩm"
               className="px-4 py-2 bg-primary-500 text-primary-0 rounded-xl hover:bg-primary-600 transition sm:line-clamp-1"
-              onClick={onOpen}
+              onClick={onAddModalOpen}
             />
           </div>
         </div>
@@ -161,10 +172,10 @@ const Drinks = () => {
           ) : (
             <div className="grid xsm:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((product) => (
-                <ProductCard
+                <ProductAdminCard
                   key={product.id}
                   product={product}
-                  onSelected={() => {}}
+                  onOpenModal={handleOpenDetailModal}
                 />
               ))}
             </div>
@@ -195,10 +206,19 @@ const Drinks = () => {
         )}
       </div>
       <AddProductModal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onClose={onClose}
-        onCreated={() => mutateProducts()}/>
+        isOpen={isAddModalOpen}
+        onClose={onAddModalClose}
+        onCreated={() => mutateProducts()}
+      />
+      {selectedProduct && (
+        <ProductDetailModal
+          isOpen={isDetailModalOpen}
+          onClose={handleCloseDetailModal}
+          product={selectedProduct}
+          onUpdate={() => mutateProducts()}
+          onDelete={() => mutateProducts()}
+        />
+      )}
     </main>
   );
 };

@@ -15,3 +15,12 @@ export const statusOptions = [
   { name: "Đã bàn giao", uid: "DELIVERED" },
   { name: "Đã huỷ", uid: "CANCELLED" },
 ];
+
+export const statusAdminOptions = [
+  { name: "Chờ tiếp nhận", uid: "ĐANG CHỜ" },
+  { name: "Đơn đang làm", uid: "ĐANG XỬ LÝ" },
+  { name: "Đơn làm xong", uid: "HOÀN TẤT" },
+  { name: "Đang vận chuyển", uid: "ĐANG GIAO HÀNG" },
+  { name: "Đã bàn giao", uid: "ĐÃ GIAO HÀNG" },
+  { name: "Đã huỷ", uid: "ĐÃ HỦY" },
+];

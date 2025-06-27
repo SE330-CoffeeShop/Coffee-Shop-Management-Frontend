@@ -49,6 +49,32 @@ const ASidebar = () => {
             </div>
           </div>
           <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
+          {/* Chi nhánh */}
+          {isSidebarExpanded && (
+            <span className="text-lg-semibold text-primary-0">Chi nhánh</span>
+          )}
+          <div className="relative mt-3 pb-2">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item, idx) => {
+                if (item.group === "branches") {
+                  return (
+                    <Fragment key={idx}>
+                      <div className="space-y-1">
+                        <SidebarItem
+                          label={item.name}
+                          icon={item.icon}
+                          path={item.href}
+                          active={item.active}
+                          isSidebarExpanded={isSidebarExpanded}
+                        />
+                      </div>
+                    </Fragment>
+                  );
+                }
+              })}
+            </div>
+          </div>
+          <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
           {/* Đơn hàng */}
           {isSidebarExpanded && (
             <span className="text-lg-semibold text-primary-0">Đơn hàng</span>
@@ -104,39 +130,13 @@ const ASidebar = () => {
           {/* Nhân viên */}
           {isSidebarExpanded && (
             <span className="text-lg-semibold text-primary-0">
-              Lịch hàm việc
+              Nhân viên
             </span>
           )}
           <div className="relative mt-3 pb-2">
             <div className="flex flex-col space-y-1">
               {navItems.map((item, idx) => {
                 if (item.group === "employees") {
-                  return (
-                    <Fragment key={idx}>
-                      <div className="space-y-1">
-                        <SidebarItem
-                          label={item.name}
-                          icon={item.icon}
-                          path={item.href}
-                          active={item.active}
-                          isSidebarExpanded={isSidebarExpanded}
-                        />
-                      </div>
-                    </Fragment>
-                  );
-                }
-              })}
-            </div>
-          </div>
-          <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
-          {/* Khách hàng */}
-          {isSidebarExpanded && (
-            <span className="text-lg-semibold text-primary-0">Khách hàng</span>
-          )}
-          <div className="relative mt-3 pb-2">
-            <div className="flex flex-col space-y-1">
-              {navItems.map((item, idx) => {
-                if (item.group === "customers") {
                   return (
                     <Fragment key={idx}>
                       <div className="space-y-1">
@@ -189,6 +189,32 @@ const ASidebar = () => {
             <div className="flex flex-col space-y-1">
               {navItems.map((item, idx) => {
                 if (item.group === "warehouses") {
+                  return (
+                    <Fragment key={idx}>
+                      <div className="space-y-1">
+                        <SidebarItem
+                          label={item.name}
+                          icon={item.icon}
+                          path={item.href}
+                          active={item.active}
+                          isSidebarExpanded={isSidebarExpanded}
+                        />
+                      </div>
+                    </Fragment>
+                  );
+                }
+              })}
+            </div>
+          </div>
+          <div className="mb-2 h-[1px] w-full bg-secondary-300"></div>
+          {/* Thống kê */}
+          {isSidebarExpanded && (
+            <span className="text-lg-semibold text-primary-0">Thống kê</span>
+          )}
+          <div className="relative mt-3 pb-2">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item, idx) => {
+                if (item.group === "reports") {
                   return (
                     <Fragment key={idx}>
                       <div className="space-y-1">

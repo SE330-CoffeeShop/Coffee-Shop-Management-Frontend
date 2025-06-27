@@ -5,17 +5,13 @@ import { ProductType } from "@/types/product.type";
 
 interface ProductCardProps {
   product: ProductType;
-  onSelected: (product: ProductType) => void;
+  onOpenModal: (product: ProductType) => void;
 }
 
-const ProductCard = ({ product, onSelected }: ProductCardProps) => {
-  const handleAddToCart = () => {
-    onSelected(product);
-  };
-
+const ProductAdminCard = ({ product, onOpenModal }: ProductCardProps) => {
   return (
     <div className="flex flex-col sm:flex-row p-4 bg-white rounded-xl shadow-sm border gap-4">
-      {/* Div 1: Ảnh sản phẩm */}
+      {/* Div 1: Product Image */}
       <div className="flex-shrink-0">
         <img
           src={product.productThumb}
@@ -24,7 +20,7 @@ const ProductCard = ({ product, onSelected }: ProductCardProps) => {
         />
       </div>
 
-      {/* Div 2: Thông tin sản phẩm */}
+      {/* Div 2: Product Information */}
       <div className="flex flex-col flex-grow justify-between">
         <div>
           <p className="text-lg-2-semibold text-secondary-900 line-clamp-2">
@@ -39,10 +35,9 @@ const ProductCard = ({ product, onSelected }: ProductCardProps) => {
             {product.productPrice.toLocaleString("vi-VN")} VNĐ
           </span>
           <ButtonSolid
-            content="Thêm vào giỏ hàng"
-            isDisabled={!product.productIsPublished}
+            content="Quản lý sản phẩm"
             className="px-4 py-2 bg-primary-500 text-primary-0 rounded-xl hover:bg-primary-600 transition sm:line-clamp-1"
-            onClick={handleAddToCart}
+            onClick={() => onOpenModal(product)}
           />
         </div>
       </div>
@@ -50,4 +45,4 @@ const ProductCard = ({ product, onSelected }: ProductCardProps) => {
   );
 };
 
-export default ProductCard;
+export default ProductAdminCard;
