@@ -15,6 +15,24 @@ import CustomerCardDisplay from "@/components/Card/CustomerCardDisplay";
 import OrderProductDisplay from "@/components/Card/OrderProductDisplay";
 import ShiftEmployeeDisplayCard from "@/components/Card/ShiftEmployeeDisplay";
 
+import BranchRevenueLineChartApex from "@/components/Charts/Apex/BranchRevenueLineChart";
+import BranchRevenueLineChartChartjs from "@/components/Charts/Chartjs/BranchRevenueLineChart";
+
+import TotalRevenueLineChartApex from "@/components/Charts/Apex/TotalRevenueLineChart";
+import TotalRevenueLineChartChartjs from "@/components/Charts/Chartjs/TotalRevenueLineChart";
+
+import ProductRevenueStackedBarChartApex from "@/components/Charts/Apex/ProductRevenueStackedBarChart";
+import ProductRevenueStackedBarChartChartjs from "@/components/Charts/Chartjs/ProductRevenueStackedBarChart";
+
+import OrderStatusLineChartApex from "@/components/Charts/Apex/OrderStatusLineChart";
+import OrderStatusLineChartChartjs from "@/components/Charts/Chartjs/OrderStatusLineChart";
+
+import TopProductsBarChartApex from "@/components/Charts/Apex/TopProductsBarChart";
+import TopProductsBarChartChartjs from "@/components/Charts/Chartjs/TopProductsBarChart";
+
+import ChatWidget from "@/components/Widget/ChatWidget";
+import ContactWidget from "@/components/Widget/ContactWidget";
+
 export {
   ButtonOutline,
   ButtonBase,
@@ -32,4 +50,16 @@ export {
   CustomerCardDisplay,
   OrderProductDisplay,
   ShiftEmployeeDisplayCard,
+  BranchRevenueLineChartApex,
+  BranchRevenueLineChartChartjs,
+  TotalRevenueLineChartApex,
+  TotalRevenueLineChartChartjs,
+  ProductRevenueStackedBarChartApex,
+  ProductRevenueStackedBarChartChartjs,
+  OrderStatusLineChartApex,
+  OrderStatusLineChartChartjs,
+  TopProductsBarChartApex,
+  TopProductsBarChartChartjs,
+  ChatWidget,
+  ContactWidget,
 };
