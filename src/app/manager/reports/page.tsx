@@ -123,7 +123,7 @@ const Reports = () => {
 
   return (
     <main className="flex min-h-screen w-full flex-col gap-6 bg-gray-50 p-6">
-      <div className="mx-auto w-full max-w-7xl">
+      <div className="mx-auto w-full max-w-8xl">
         <div className="flex flex-col gap-6 rounded-2xl bg-white p-8 shadow-lg">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
@@ -164,11 +164,11 @@ const Reports = () => {
           )}
           {branchRevenueData && !isLoading && !error && (
             <>
-              <div className="h-[600px] overflow-hidden rounded-xl bg-white shadow-sm">
+              <div className="h-[600px] overflow-hidden rounded-xl bg-white shadow-sm pb-4">
                 <h3 className="bg-gray-100 p-4 text-sm font-semibold text-gray-700">
                   Doanh thu theo tháng
                 </h3>
-                <div className="h-full w-full p-4">
+                <div className="h-full w-full p-4 mb-2">
                   <BranchRevenueLineChartApex data={[branchRevenueData]} />
                 </div>
               </div>

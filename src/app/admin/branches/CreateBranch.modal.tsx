@@ -34,20 +34,71 @@ const CreateBranchModal = ({
     branchEmail: "",
   });
 
+  const [errors, setErrors] = useState<{
+    branchName: string;
+    branchAddress: string;
+    branchPhone: string;
+    branchEmail: string;
+  }>({
+    branchName: "",
+    branchAddress: "",
+    branchPhone: "",
+    branchEmail: "",
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const validateInputs = () => {
+    const newErrors = { ...errors };
+
+    newErrors.branchName = formData.branchName.trim()
+      ? ""
+      : "Tên chi nhánh là bắt buộc";
+    newErrors.branchAddress = formData.branchAddress.trim()
+      ? ""
+      : "Địa chỉ là bắt buộc";
+    newErrors.branchPhone = formData.branchPhone.trim()
+      ? /^\d{10}$/.test(formData.branchPhone)
+        ? ""
+        : "Số điện thoại phải có đúng 10 chữ số"
+      : "Số điện thoại là bắt buộc";
+    newErrors.branchEmail = formData.branchEmail.trim()
+      ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.branchEmail)
+        ? ""
+        : "Email không hợp lệ"
+      : "Email là bắt buộc";
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every((error) => error === "");
   };
 
   const handleSubmit = async () => {
-    try {
-      await BranchAdminServices.createBranch(formData);
-      toast.success("Tạo chi nhánh thành công!");
-      onCreated();
-      onClose();
-    } catch (error) {
-      toast.error("Tạo chi nhánh thất bại. Vui lòng thử lại.");
+    if (validateInputs()) {
+      try {
+        setIsSubmitting(true);
+        await BranchAdminServices.createBranch(formData);
+        toast.success("Tạo chi nhánh thành công!");
+        onCreated();
+        onClose();
+      } catch (error) {
+        toast.error("Tạo chi nhánh thất bại. Vui lòng thử lại.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
+
+  const renderError = (field: keyof typeof errors) =>
+    errors[field] && (
+      <span className="absolute bottom-[-20px] left-2 h-4 min-w-max text-sm text-error-600">
+        {errors[field]}
+      </span>
+    );
 
   return (
     <Modal
@@ -73,7 +124,7 @@ const CreateBranchModal = ({
               <span className="basis-[30%] text-sm font-medium text-black">
                 TÊN CHI NHÁNH
               </span>
-              <div className="basis-[70%]">
+              <div className="relative basis-[70%]">
                 <Input
                   type="text"
                   name="branchName"
@@ -83,13 +134,14 @@ const CreateBranchModal = ({
                   placeholder="Nhập tên chi nhánh"
                   aria-label="Tên chi nhánh"
                 />
+                {renderError("branchName")}
               </div>
             </div>
             <div className="flex flex-row gap-4">
               <span className="basis-[30%] text-sm font-medium text-black">
                 ĐỊA CHỈ
               </span>
-              <div className="basis-[70%]">
+              <div className="relative basis-[70%]">
                 <Input
                   type="text"
                   name="branchAddress"
@@ -99,13 +151,14 @@ const CreateBranchModal = ({
                   placeholder="Nhập địa chỉ"
                   aria-label="Địa chỉ"
                 />
+                {renderError("branchAddress")}
               </div>
             </div>
             <div className="flex flex-row gap-4">
               <span className="basis-[30%] text-sm font-medium text-black">
                 SỐ ĐIỆN THOẠI
               </span>
-              <div className="basis-[70%]">
+              <div className="relative basis-[70%]">
                 <Input
                   type="text"
                   name="branchPhone"
@@ -115,13 +168,14 @@ const CreateBranchModal = ({
                   placeholder="Nhập số điện thoại"
                   aria-label="Số điện thoại"
                 />
+                {renderError("branchPhone")}
               </div>
             </div>
             <div className="flex flex-row gap-4">
               <span className="basis-[30%] text-sm font-medium text-black">
                 EMAIL
               </span>
-              <div className="basis-[70%]">
+              <div className="relative basis-[70%]">
                 <Input
                   type="email"
                   name="branchEmail"
@@ -131,6 +185,7 @@ const CreateBranchModal = ({
                   placeholder="Nhập email"
                   aria-label="Email"
                 />
+                {renderError("branchEmail")}
               </div>
             </div>
           </div>
@@ -145,8 +200,9 @@ const CreateBranchModal = ({
           <Button
             onClick={handleSubmit}
             className="w-1/2 rounded-lg border-2 border-gray-400 bg-primary-500 text-primary-0 hover:bg-primary-600"
+            isDisabled={isSubmitting}
           >
-            Tạo
+            {isSubmitting ? "Đang tạo..." : "Tạo"}
           </Button>
         </ModalFooter>
       </ModalContent>

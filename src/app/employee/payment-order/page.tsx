@@ -118,9 +118,9 @@ const PaymentOrder = () => {
       if (selectedPaymentMethodId !== process.env.NEXT_PUBLIC_PAYMENT_METHOD_CASH) {
         setIsPolling(true);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Lỗi thanh toán:", error);
-      toast.error("Lỗi khi thanh toán. Vui lòng thử lại.");
+      toast.error(error.response?.data?.message || "Lỗi khi thanh toán. Vui lòng thử lại.");
     }
   };
 

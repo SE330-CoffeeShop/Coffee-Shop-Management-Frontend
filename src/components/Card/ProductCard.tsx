@@ -30,7 +30,7 @@ const ProductCard = ({ product, onSelected }: ProductCardProps) => {
           <p className="text-lg-2-semibold text-secondary-900 line-clamp-2">
             {product.productName}
           </p>
-          <p className="mt-2 text-sm-regular text-primary-500 line-clamp-3">
+          <p className="mt-2 text-sm-regular text-secondary-900 line-clamp-3">
             {product.productDescription}
           </p>
         </div>

@@ -42,7 +42,7 @@ const Notifications = () => {
         while (page <= totalPages) {
           const response = await NotificationEmployeeServices.getReceivedNotifications({
             page,
-            limit: 100,
+            limit: 500,
           });
           allData = [...allData, ...response.data];
           totalPages = response.paging.totalPages;

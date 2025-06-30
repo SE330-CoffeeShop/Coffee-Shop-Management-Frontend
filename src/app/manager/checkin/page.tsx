@@ -13,7 +13,12 @@ import {
   Tooltip,
   Button,
 } from "@heroui/react";
-import { EyeIcon, MagnifyingGlassIcon, CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  EyeIcon,
+  MagnifyingGlassIcon,
+  CheckIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 import React, { Key, useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import axios from "@/lib/axiosInstance";
@@ -35,13 +40,13 @@ const Checkin = () => {
   const [page, setPage] = useState(1);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
-  const [isCancelCheckinModalOpen, setIsCancelCheckinModalOpen] = useState(false);
+  const [isCancelCheckinModalOpen, setIsCancelCheckinModalOpen] =
+    useState(false);
   const [actionShiftId, setActionShiftId] = useState<string | null>(null);
   const rowsPerPage = 10;
 
   const today = new Date();
   const isToday = selectedDate.toDateString() === today.toDateString();
-
   const endpointShifts = useMemo(() => {
     const params = new URLSearchParams({
       year: selectedDate.getFullYear().toString(),
@@ -90,7 +95,8 @@ const Checkin = () => {
     return totalShifts ? Math.ceil(totalShifts / rowsPerPage) : 0;
   }, [totalShifts]);
 
-  const loadingState = shiftsLoading || shifts.length === 0 ? "loading" : "idle";
+  const loadingState =
+    shiftsLoading || shifts.length === 0 ? "loading" : "idle";
 
   const handleSearchFullName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFilterFullName(e.target.value);
@@ -99,18 +105,19 @@ const Checkin = () => {
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = new Date(e.target.value);
-    if (!isNaN(newDate.getTime())) {
+    if (!isNaN(newDate.getTime() + 7 * 60 * 60 * 1000)) {
       setSelectedDate(newDate);
       setPage(1);
     }
   };
 
   const isShiftTimeValid = (shift: ShiftDto): boolean => {
-    const now = new Date(); // Thời gian hiện tại tại Asia/Ho_Chi_Minh
-    const shiftDate = new Date(selectedDate); // Ngày được chọn, múi giờ local
+    const now = new Date();
+    const shiftDate = new Date(selectedDate);
 
-    // Giả sử shiftStartTime và shiftEndTime là theo múi giờ local (Asia/Ho_Chi_Minh)
-    const [startHours, startMinutes] = shift.shiftStartTime.split(":").map(Number);
+    const [startHours, startMinutes] = shift.shiftStartTime
+      .split(":")
+      .map(Number);
     const [endHours, endMinutes] = shift.shiftEndTime.split(":").map(Number);
 
     const startTime = new Date(shiftDate);
@@ -119,11 +126,9 @@ const Checkin = () => {
     const endTime = new Date(shiftDate);
     endTime.setHours(endHours, endMinutes, 0, 0);
 
-    // Thêm 30 phút buffer cho endTime
     const endTimeWithBuffer = new Date(endTime);
     endTimeWithBuffer.setMinutes(endTime.getMinutes() + 30);
 
-    // Xử lý ca làm việc qua đêm
     if (endTime <= startTime) {
       endTimeWithBuffer.setDate(endTimeWithBuffer.getDate() + 1);
     }
@@ -134,8 +139,25 @@ const Checkin = () => {
   const handleCheckIn = async () => {
     if (!actionShiftId) return;
     try {
-      const checkinTime = new Date().toISOString(); // Gửi UTC time
-      await CheckinManagerService.checkInDailyEmployee(actionShiftId, checkinTime);
+      // Cách 1: Cộng thêm 7 giờ vào thời gian UTC
+      const now = new Date();
+      const vietnamTime = new Date(now.getTime() + 7 * 60 * 60 * 1000);
+      const checkinTime = vietnamTime.toISOString();
+
+      // Cách 2: Sử dụng múi giờ (alternative approach)
+      // const vietnamTime = new Date().toLocaleString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" });
+      // const checkinTime = new Date(vietnamTime).toISOString();
+
+      console.log(
+        "Current Vietnam time:",
+        now.toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })
+      );
+      console.log("Check-in time sent to API:", checkinTime);
+
+      await CheckinManagerService.checkInDailyEmployee(
+        actionShiftId,
+        checkinTime
+      );
       toast.success("Chấm công thành công.");
       mutateShifts();
       setIsCheckinModalOpen(false);
@@ -152,12 +174,13 @@ const Checkin = () => {
     try {
       const shift = shifts.find((s) => s.id === actionShiftId);
       if (!shift) throw new Error("Shift not found");
-      const checkinData = await CheckinManagerService.getCheckinByShiftAndDateMonthYear({
-        shiftId: actionShiftId,
-        day: selectedDate.getDate(),
-        month: shift.month,
-        year: shift.year,
-      });
+      const checkinData =
+        await CheckinManagerService.getCheckinByShiftAndDateMonthYear({
+          shiftId: actionShiftId,
+          day: selectedDate.getDate(),
+          month: shift.month,
+          year: shift.year,
+        });
       const checkinId = checkinData.data[0]?.id;
       if (!checkinId) throw new Error("Check-in ID not found");
       await CheckinManagerService.deleteCheckin(checkinId);

@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import { ProductType } from "@/types/product.type";
 import { ProductCategoryType } from "@/types/product.category.type";
 import axios from "@/lib/axiosInstance";
-import { ProductCard, SearchBar } from "@/components";
+import { SearchBar } from "@/components";
 import ButtonSolid from "@/components/Button/ButtonSolid";
 import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { useDisclosure } from "@heroui/react";
 import { Button } from "@heroui/react";
-import AddProductModal from "@/app/admin/drinks/AddProduct.modal";
+import ProductManagerCard from "@/components/Card/ProductManagerCard";
 
 const fetcher = (url: string) => axios.get(url).then((res) => res.data);
 
@@ -30,7 +29,6 @@ const debounce = <T extends (...args: any[]) => void>(
 };
 
 const Drinks = () => {
-  const { isOpen, onOpen, onOpenChange, onClose } = useDisclosure();
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -54,7 +52,6 @@ const Drinks = () => {
     data: productsData,
     error: productsError,
     isLoading: productsLoading,
-    mutate: mutateProducts,
   } = useSWR(endpointProducts, fetcher, {
     keepPreviousData: true,
     revalidateOnFocus: false,
@@ -138,11 +135,6 @@ const Drinks = () => {
               ))}
             </select>
             <SearchBar onSearch={handleSearch} />
-            <ButtonSolid
-              content="Thêm vào giỏ hàng"
-              className="px-4 py-2 bg-primary-500 text-primary-0 rounded-xl hover:bg-primary-600 transition sm:line-clamp-1"
-              onClick={onOpen}
-            />
           </div>
         </div>
         <div className="mt-4">
@@ -161,11 +153,7 @@ const Drinks = () => {
           ) : (
             <div className="grid xsm:grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
-                  onSelected={() => {}}
-                />
+                <ProductManagerCard key={product.id} product={product} />
               ))}
             </div>
           )}
@@ -194,11 +182,6 @@ const Drinks = () => {
           </div>
         )}
       </div>
-      <AddProductModal
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        onClose={onClose}
-        onCreated={() => mutateProducts()}/>
     </main>
   );
 };

@@ -30,6 +30,8 @@ class CheckinManagerService {
   }
 
   async checkInDailyEmployee(shiftId: string, checkinTime: string) {
+    console.log("Checking in employee for shift:", shiftId);
+    console.log("Check-in time:", checkinTime);
     try {
       const response = await axiosInstance.post("/checkin/", {
         shiftId,

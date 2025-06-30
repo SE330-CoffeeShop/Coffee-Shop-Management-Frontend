@@ -71,7 +71,6 @@ const AddProductToCartModal = ({
   // Cập nhật danh sách biến thể và chọn biến thể mặc định
   useEffect(() => {
     if (productVariantsData) {
-      console.log("productVariantsData: ", productVariantsData);
       const mappedVariants = productVariantsData.data
         .map(mapResponseToProductVariantType)
         .filter(

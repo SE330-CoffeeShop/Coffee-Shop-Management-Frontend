@@ -26,7 +26,7 @@ import UpdateBranchModal from "@/app/admin/branches/UpdateBranch.modal";
 import DeleteConfirmationModal from "@/app/admin/branches/DeleteBranch.modal";
 import CreateBranchModal from "@/app/admin/branches/CreateBranch.modal";
 import CreateManagerModal from "@/app/admin/branches/CreateManager.modal";
-import ManagerDetailModal from "@/app/admin/branches/ManagerDetail.modal";
+import ConfirmDeleteManager from "@/app/admin/branches/ConfirmDeleteManager";
 import { columnsBranch } from "@/data/branch.data";
 
 const fetcher = () => BranchAdminServices.getAllBranchesInSystem();
@@ -186,7 +186,7 @@ const Branches = () => {
                 </span>
               </Tooltip>
               <Tooltip
-                content={branch.managerId ? "Cập nhật quản lý" : "Thêm quản lý"}
+                content={branch.managerId ? "Xóa quản lý" : "Thêm quản lý"}
                 className="bg-primary-700 text-white px-2 py-1 rounded-md text-xs"
               >
                 <span
@@ -351,7 +351,7 @@ const Branches = () => {
         />
       )}
       {selectedBranchForManagerDetail && (
-        <ManagerDetailModal
+        <ConfirmDeleteManager
           isOpen={isManagerDetailOpen}
           onOpenChange={onManagerDetailOpenChange}
           onClose={onManagerDetailClose}

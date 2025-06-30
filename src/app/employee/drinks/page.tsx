@@ -210,7 +210,7 @@ const Drinks = () => {
 
       setDiscount(discountAmount);
       toast.success(
-        `Áp dụng khuyến mãi thành công: ${discount.toLocaleString("vi-VN")} VNĐ`
+        `Áp dụng khuyến mãi thành công`
       );
     } catch (error: any) {
       console.error("Discount API error:", error);
